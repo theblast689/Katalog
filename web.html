@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head><script>
+(function(){
+    const SESSION_KEY="fokuspro_auth";
+    const REDIRECT_KEY="fokuspro_redirect";
+    if(sessionStorage.getItem(SESSION_KEY)!=="ok"){
+        sessionStorage.setItem(REDIRECT_KEY, window.location.pathname.split("/").pop()||"index.html");
+        window.location.replace("login.html");
+    }
+})();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Rak Website — Katalog Pro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <meta name="theme-color" content="#3fb950">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== CSS VARIABLES ===== */
+        :root[data-theme="dark"] {
+            --bg:         #0d1117;
+            --surface:    #161b22;
+            --surface2:   #1c2128;
+            --border:     #30363d;
+            --text:       #e6edf3;
+            --text2:      #8b949e;
+            --accent:     #3fb950;
+            --accent-dim: rgba(63,185,80,0.12);
+            --acc-hover:  #2ea043;
+            --danger:     #f85149;
+            --warning:    #e3b341;
+            --info:       #58a6ff;
+            --shadow:     0 4px 24px rgba(0,0,0,0.5);
+            --shadow-sm:  0 2px 8px rgba(0,0,0,0.3);
+            --thumb-bg:   #0d1117;
+            --grad-header: linear-gradient(160deg, #0d2818 0%, #0d1117 60%);
+        }
+        :root[data-theme="light"] {
+            --bg:         #f3f6fa;
+            --surface:    #ffffff;
+            --surface2:   #f0f4f8;
+            --border:     #d0d7de;
+            --text:       #1c2128;
+            --text2:      #57606a;
+            --accent:     #2da44e;
+            --accent-dim: rgba(45,164,78,0.1);
+            --acc-hover:  #218739;
+            --danger:     #cf222e;
+            --warning:    #9a6700;
+            --info:       #0969da;
+            --shadow:     0 4px 16px rgba(0,0,0,0.09);
+            --shadow-sm:  0 2px 6px rgba(0,0,0,0.06);
+            --thumb-bg:   #e8ecf0;
+            --grad-header: linear-gradient(160deg, #1a7f37 0%, #2da44e 100%);
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.5;
+        }
+
+        /* ==============================
+           TOAST
+        ============================== */
+        #toast-wrap {
+            position: fixed; top: 20px; right: 20px;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 10px;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 13px 18px;
+            font-size: 13.5px; font-weight: 500;
+            box-shadow: var(--shadow);
+            display: flex; align-items: center; gap: 10px;
+            animation: toastIn 0.3s ease both;
+            max-width: 300px;
+            pointer-events: auto;
+        }
+        .toast.success { border-left: 3px solid var(--accent); }
+        .toast.error   { border-left: 3px solid var(--danger); }
+        .toast.info    { border-left: 3px solid var(--info); }
+        @keyframes toastIn  { from { transform: translateX(80px); opacity: 0; } to { transform: none; opacity: 1; } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
+
+        /* ==============================
+           HEADER
+        ============================== */
+        .site-header {
+            background: var(--grad-header);
+            position: sticky; top: 0; z-index: 100;
+        }
+        .header-inner {
+            max-width: 1200px; margin: 0 auto;
+            padding: 22px 24px 0;
+        }
+        .header-top {
+            display: flex; align-items: flex-start;
+            justify-content: space-between; gap: 16px;
+            margin-bottom: 18px;
+        }
+        .brand h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px; font-weight: 800;
+            color: #fff; letter-spacing: -0.4px;
+        }
+        .brand p { font-size: 12.5px; color: rgba(255,255,255,0.65); margin-top: 2px; }
+
+        .header-actions { display: flex; gap: 8px; align-items: center; }
+        .icon-btn {
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            color: white; border-radius: 50%;
+            width: 36px; height: 36px; cursor: pointer; font-size: 15px;
+            display: flex; align-items: center; justify-content: center;
+            transition: 0.2s; flex-shrink: 0;
+        }
+        .icon-btn:hover { background: rgba(255,255,255,0.25); }
+
+        /* Stats pills */
+        .stats-row {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 2px;
+        }
+        .stat-pill {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.16);
+            border-radius: 20px; padding: 5px 13px;
+            font-size: 12px; color: rgba(255,255,255,0.85);
+            display: flex; align-items: center; gap: 5px;
+            font-weight: 500;
+        }
+        .stat-pill strong {
+            font-family: 'Outfit', sans-serif; font-weight: 700;
+            font-size: 14px; color: #fff;
+        }
+
+        /* Nav tabs */
+        .nav-tabs {
+            display: flex; gap: 3px; margin-top: 18px;
+            overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none;
+        }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab {
+            padding: 9px 16px; border-radius: 10px 10px 0 0;
+            text-decoration: none; font-size: 12.5px; font-weight: 600;
+            color: rgba(255,255,255,0.65); white-space: nowrap;
+            background: rgba(255,255,255,0.07); transition: 0.2s;
+        }
+        .nav-tab:hover { background: rgba(255,255,255,0.14); color: white; }
+        .nav-tab.active { background: var(--bg); color: var(--text); }
+
+        /* ── BOTTOM NAV (mobile) ── */
+        .bottom-nav {
+            display: none;
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--surface); border-top: 1px solid var(--border);
+            z-index: 200; padding: 0 0 env(safe-area-inset-bottom);
+        }
+        .bottom-nav-inner { display: flex; justify-content: space-around; height: 56px; }
+        .bnav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-decoration: none; font-size: 9px; font-weight: 700;
+            color: rgba(255,255,255,0.45); gap: 2px; transition: color .15s;
+        }
+        .bnav-item.active { color: #3fb950; }
+        .bnav-item span:first-child { font-size: 18px; line-height: 1; }
+
+        /* ==============================
+           MAIN
+        ============================== */
+        .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+
+        /* ==============================
+           PANEL
+        ============================== */
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px; margin-bottom: 18px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 22px; cursor: pointer; user-select: none;
+        }
+        .panel-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 700; color: var(--text2);
+            text-transform: uppercase; letter-spacing: 0.7px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .panel-title em { color: var(--accent); font-style: normal; }
+        .panel-toggle {
+            font-size: 11px; color: var(--text2); background: var(--surface2);
+            border: 1px solid var(--border); border-radius: 6px;
+            padding: 4px 10px; cursor: pointer; transition: 0.2s; pointer-events: none;
+        }
+        .panel-body {
+            overflow: hidden; transition: max-height 0.35s ease, opacity 0.2s;
+            padding: 0 22px;
+        }
+        .panel-body.open  { max-height: 2000px; opacity: 1; padding-bottom: 22px; }
+        .panel-body.shut  { max-height: 0; opacity: 0; padding-bottom: 0; }
+
+        /* ==============================
+           FORM ELEMENTS
+        ============================== */
+        .form-row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .fg { flex: 1; min-width: 180px; display: flex; flex-direction: column; gap: 6px; }
+        .fg label { font-size: 11.5px; font-weight: 600; color: var(--text2); letter-spacing: 0.2px; }
+
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 9px; padding: 10px 13px;
+            color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13.5px;
+            outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        input::placeholder, textarea::placeholder { color: var(--text2); }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .btn {
+            padding: 10px 18px; border-radius: 9px; border: none;
+            font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 13.5px;
+            cursor: pointer; transition: 0.2s;
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--acc-hover); }
+        .btn-ghost {
+            background: var(--surface2); color: var(--text2);
+            border: 1px solid var(--border);
+        }
+        .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-sm { padding: 7px 13px; font-size: 12px; border-radius: 7px; }
+
+        /* Checkbox labels for category picker */
+        .kat-grid {
+            display: flex; flex-wrap: wrap; gap: 7px;
+            margin-top: 14px; padding: 14px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+        .kat-lbl {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 11px; border-radius: 8px;
+            border: 1px solid var(--border); font-size: 12.5px;
+            cursor: pointer; user-select: none; transition: 0.2s;
+            background: var(--surface);
+        }
+        .kat-lbl:hover { border-color: var(--accent); }
+        .kat-lbl input[type="checkbox"] {
+            width: auto; background: none; border: none; padding: 0;
+            accent-color: var(--accent);
+        }
+        .kat-lbl.on { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+        /* Manage-list chips */
+        .chip-list { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 13px; }
+        .kat-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 4px 11px; border-radius: 20px; border: 1px solid;
+            font-size: 12px; font-weight: 600;
+        }
+        .kat-chip .x {
+            background: none; border: none; cursor: pointer;
+            color: inherit; opacity: 0.5; font-size: 11px; line-height: 1;
+            transition: opacity 0.15s; padding: 0;
+        }
+        .kat-chip .x:hover { opacity: 1; }
+
+        /* ==============================
+           CONTROLS BAR
+        ============================== */
+        .controls-bar {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            align-items: center; margin-bottom: 14px;
+        }
+        .search-wrap { flex: 1; min-width: 200px; position: relative; }
+        .search-wrap span {
+            position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+            color: var(--text2); font-size: 15px; pointer-events: none;
+        }
+        .search-wrap input { padding-left: 40px; border-radius: 30px; }
+
+        select.sort-sel {
+            min-width: 160px; cursor: pointer;
+            background: var(--surface); border-radius: 9px;
+        }
+
+        /* ==============================
+           FILTER BAR
+        ============================== */
+        .filter-bar {
+            display: flex; flex-wrap: wrap; gap: 7px;
+            align-items: center; margin-bottom: 16px;
+        }
+        .filter-label { font-size: 11.5px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px; }
+        .f-pill {
+            padding: 4px 13px; border-radius: 20px;
+            border: 1px solid var(--border); background: var(--surface);
+            color: var(--text2); font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: 0.2s;
+        }
+        .f-pill:hover { border-color: var(--accent); color: var(--accent); }
+        .f-pill.on { background: var(--accent); color: white; border-color: var(--accent); }
+        .f-pill.s-sedang.on { background: var(--warning); border-color: var(--warning); color: #0d1117; }
+        .f-pill.s-belum.on  { background: var(--surface2); border-color: var(--text2); color: var(--text); }
+
+        /* ==============================
+           RESULT META
+        ============================== */
+        .result-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 12.5px; color: var(--text2); margin-bottom: 16px;
+        }
+        .result-meta strong { color: var(--text); }
+
+        /* ==============================
+           CARD GRID
+        ============================== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+            gap: 18px; margin-bottom: 24px;
+        }
+
+        /* ==============================
+           CARD
+        ============================== */
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 14px; overflow: hidden;
+            display: flex; flex-direction: column;
+            transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+            position: relative; animation: cardIn 0.35s ease both;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow); border-color: var(--accent);
+        }
+        @keyframes cardIn {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Thumb */
+        .card-thumb {
+            height: 145px; background: var(--thumb-bg);
+            position: relative; overflow: hidden; flex-shrink: 0;
+        }
+        .card-thumb img.ss {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.4s;
+        }
+        .card:hover .ss { transform: scale(1.04); }
+        .thumb-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.02) 40%, rgba(0,0,0,0.65));
+        }
+        .card-fav {
+            position: absolute; bottom: 9px; left: 11px;
+            width: 26px; height: 26px; border-radius: 6px;
+            background: white; padding: 2px; object-fit: contain;
+            border: 2px solid rgba(255,255,255,0.25);
+        }
+        .card-domain {
+            position: absolute; bottom: 11px; left: 43px;
+            font-size: 11px; color: rgba(255,255,255,0.82); font-weight: 600;
+        }
+
+        /* Del button */
+        .del-btn {
+            position: absolute; top: 9px; left: 9px;
+            width: 27px; height: 27px;
+            background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 50%; color: white; cursor: pointer;
+            font-size: 11px; display: flex; align-items: center; justify-content: center;
+            opacity: 0; transition: opacity 0.2s, background 0.2s; z-index: 5;
+        }
+        .card:hover .del-btn { opacity: 1; }
+        .del-btn:hover { background: var(--danger); border-color: var(--danger); }
+
+        /* Body */
+        .card-body {
+            padding: 14px 15px; flex-grow: 1;
+            display: flex; flex-direction: column; gap: 9px;
+        }
+        .card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+        .tag {
+            padding: 3px 8px; border-radius: 5px;
+            font-size: 10.5px; font-weight: 700; border: 1px solid;
+        }
+        .card-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.38;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .card-meta {
+            display: flex; align-items: center; justify-content: space-between;
+            font-size: 11px; color: var(--text2);
+        }
+
+        /* Stars */
+        .stars { display: flex; gap: 2px; }
+        .star { font-size: 14px; color: var(--border); cursor: pointer; transition: 0.12s; line-height: 1; }
+        .star.on { color: #e3b341; }
+        .star:hover { transform: scale(1.25); }
+
+        /* Status toggle */
+        .st-wrap {
+            display: flex; gap: 3px; padding: 3px;
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+        .st {
+            flex: 1; padding: 5px 6px; border: none; border-radius: 6px;
+            font-size: 10.5px; font-weight: 700; cursor: pointer;
+            background: transparent; color: var(--text2); transition: 0.18s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .st.a-belum  { background: var(--surface); color: var(--text2); box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .st.a-sedang { background: rgba(121,90,0,0.9); color: #ffd70a; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .st.a-selesai{ background: rgba(26,127,55,0.9); color: #90f5a0; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+
+        /* Progress */
+        .prog-input { font-size: 12px; padding: 7px 10px; border-radius: 8px; }
+
+        /* Notes */
+        .notes-btn {
+            background: none; border: 1px dashed var(--border);
+            border-radius: 8px; color: var(--text2);
+            padding: 7px 12px; font-size: 12px; cursor: pointer;
+            text-align: left; width: 100%; transition: 0.2s;
+            font-family: 'DM Sans', sans-serif;
+        }
+        .notes-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .notes-body {
+            border-left: 2px solid var(--accent); padding-left: 10px;
+            display: none;
+        }
+        .notes-body.open { display: flex; flex-direction: column; gap: 6px; }
+        .notes-body textarea { font-size: 12px; min-height: 65px; padding: 8px 10px; border-radius: 8px; resize: vertical; }
+
+        /* Footer */
+        .card-foot {
+            padding: 11px 14px; border-top: 1px solid var(--border);
+            display: flex; gap: 7px;
+        }
+        .foot-btn {
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text2); padding: 7px 11px; border-radius: 7px;
+            font-size: 12px; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+        }
+        .foot-btn:hover { border-color: var(--accent); color: var(--accent); }
+        .foot-save:hover { background: var(--accent-dim); }
+        .btn-open {
+            flex: 1; background: var(--accent-dim); border: 1px solid var(--accent);
+            color: var(--accent); padding: 7px; border-radius: 7px;
+            text-decoration: none; text-align: center; font-size: 12.5px; font-weight: 700;
+            transition: 0.2s; font-family: 'DM Sans', sans-serif;
+        }
+        .btn-open:hover { background: var(--accent); color: white; }
+
+        /* ==============================
+           EMPTY / LOADING
+        ============================== */
+        .empty-state { grid-column: 1/-1; text-align: center; padding: 64px 20px; }
+        .empty-state .ei { font-size: 52px; margin-bottom: 16px; }
+        .empty-state h3 {
+            font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800;
+            color: var(--text); margin-bottom: 8px;
+        }
+        .empty-state p { font-size: 13.5px; color: var(--text2); }
+
+        .loading-state { grid-column: 1/-1; text-align: center; padding: 60px; color: var(--text2); }
+        .spin {
+            width: 30px; height: 30px; margin: 0 auto 14px;
+            border: 3px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 0.75s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ==============================
+           PAGINATION
+        ============================== */
+        .paginasi {
+            display: flex; justify-content: center; gap: 5px;
+            flex-wrap: wrap; margin-bottom: 48px; align-items: center;
+        }
+        .pg {
+            background: var(--surface); border: 1px solid var(--border);
+            color: var(--text); padding: 7px 13px; border-radius: 7px;
+            cursor: pointer; font-weight: 600; font-size: 12.5px;
+            transition: 0.18s; font-family: 'DM Sans', sans-serif;
+        }
+        .pg:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+        .pg.on  { background: var(--accent); color: white; border-color: var(--accent); }
+        .pg:disabled { opacity: 0.35; cursor: not-allowed; }
+        .pg-dot { color: var(--text2); padding: 7px 3px; font-size: 12.5px; }
+
+        /* ==============================
+           SCROLLBAR
+        ============================== */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
+        /* ==============================
+           RESPONSIVE
+        ============================== */
+        @media (max-width: 640px) {
+            .header-inner { padding: 18px 16px 0; }
+            .main { padding: 14px 12px 80px; }
+            .card-grid { grid-template-columns: 1fr; gap: 14px; }
+            .form-row { flex-direction: column; }
+            .controls-bar { flex-direction: column; }
+            .brand h1 { font-size: 19px; }
+            .nav-tabs { display: none; }
+            .bottom-nav { display: block; }
+        }
+    
+        /* ── TIME TRACKER WIDGET ── */
+        .waktu-hari-ini {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(255,255,255,0.12);
+            border: 1.5px solid rgba(255,255,255,0.25);
+            border-radius: 20px; padding: 5px 13px;
+            font-size: 12px; font-weight: 700; color: #fff;
+            white-space: nowrap; cursor: default; user-select: none; flex-shrink: 0;
+        }
+        .waktu-hari-ini .dot-live {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #3fb950; animation: blink-dot 1.4s ease-in-out infinite; flex-shrink: 0;
+        }
+        .waktu-hari-ini.paused .dot-live { background: #f59e0b; animation: none; }
+        @keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .waktu-wrap { position: relative; flex-shrink: 0; }
+        .waktu-tooltip {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: #1c1c1e; color: #fff; font-size: 11px; font-weight: 600;
+            padding: 8px 12px; border-radius: 10px; white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 300;
+        }
+        .waktu-tooltip::before {
+            content:''; position:absolute; top:-5px; right:16px;
+            border-left:5px solid transparent; border-right:5px solid transparent;
+            border-bottom:5px solid #1c1c1e;
+        }
+        .waktu-wrap:hover .waktu-tooltip { display: block; }
+        </style>
+</head>
+<body>
+
+<!-- Toast -->
+<div id="toast-wrap"></div>
+
+<!-- Header -->
+<header class="site-header">
+    <div class="header-inner">
+        <div class="header-top">
+            <div class="brand">
+                <h1>📑 Rak Website</h1>
+                <p>Bookmark, kategorikan, dan lacak bacaanmu</p>
+            </div>
+            <div class="header-actions">
+                                <div class="waktu-wrap">
+                    <div class="waktu-hari-ini" id="waktuWidget">
+                        <span class="dot-live"></span>
+                        <span id="waktuTeks">00:00</span>
+                    </div>
+                    <div class="waktu-tooltip">
+                        ⏱ Waktu di halaman ini hari ini<br>
+                        <span id="waktuTooltipDetail" style="color:#aaa;font-weight:500;">Memuat...</span>
+                    </div>
+                </div>
+                <button class="icon-btn" id="themeBtn" title="Ganti tema">🌙</button>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-row">
+            <div class="stat-pill">📚 Total <strong id="sTotal">–</strong></div>
+            <div class="stat-pill">⬜ Belum <strong id="sBelum">–</strong></div>
+            <div class="stat-pill">📖 Dibaca <strong id="sSedang">–</strong></div>
+            <div class="stat-pill">✅ Selesai <strong id="sSelesai">–</strong></div>
+            <div class="stat-pill">🏷️ Kategori <strong id="sKat">–</strong></div>
+        </div>
+
+        <!-- Nav -->
+        <nav class="nav-tabs">
+            <a href="index.html" class="nav-tab">🎥 Video</a>
+            <a href="course.html" class="nav-tab">📚 Course</a>
+            <a href="habit.html" class="nav-tab">✅ Habit</a>
+            <a href="web.html" class="nav-tab active">🌐 Web</a>
+            <a href="indonesia.html" class="nav-tab">🇮🇩 Indo</a>
+            <a href="jepang.html" class="nav-tab">🇯🇵 Jepang</a>
+            <a href="timer-dashboard.html" class="nav-tab">⏱ Timer</a>
+        </nav>
+    </div>
+</header>
+
+<!-- Main -->
+<main class="main">
+
+    <!-- Panel 1: Kategori -->
+    <div class="panel">
+        <div class="panel-header" onclick="togglePanel('kat')">
+            <div class="panel-title"><em>1</em> Kelola Kategori</div>
+            <button class="panel-toggle" id="kat-toggle">▲ Tutup</button>
+        </div>
+        <div class="panel-body open" id="kat-body">
+            <div class="form-row" style="margin-top:2px">
+                <div class="fg" style="flex:2">
+                    <input type="text" id="inputKategoriBaru" placeholder="Nama kategori baru..."
+                           onkeydown="if(event.key==='Enter')tambahKategori()">
+                </div>
+                <button class="btn btn-primary" onclick="tambahKategori()" style="align-self:flex-end">+ Tambah</button>
+            </div>
+            <div class="chip-list" id="listKat"></div>
+        </div>
+    </div>
+
+    <!-- Panel 2: Simpan -->
+    <div class="panel">
+        <div class="panel-header" onclick="togglePanel('add')">
+            <div class="panel-title"><em>2</em> Simpan Bookmark Baru</div>
+            <button class="panel-toggle" id="add-toggle">▲ Tutup</button>
+        </div>
+        <div class="panel-body open" id="add-body">
+            <div class="form-row" style="margin-top:2px">
+                <div class="fg" style="flex:2.5">
+                    <label>URL Artikel / Website *</label>
+                    <input type="url" id="linkWeb" placeholder="https://..."
+                           onkeydown="if(event.key==='Enter')simpanWeb()">
+                </div>
+                <div class="fg" style="flex:1.5">
+                    <label>Judul (opsional)</label>
+                    <input type="text" id="inputJudul" placeholder="Biarkan kosong = otomatis"
+                           onkeydown="if(event.key==='Enter')simpanWeb()">
+                </div>
+                <button class="btn btn-primary" id="tombolSimpan" onclick="simpanWeb()" style="align-self:flex-end">
+                    💾 Simpan
+                </button>
+            </div>
+            <div class="kat-grid" id="wadahPilihKategori"></div>
+        </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls-bar">
+        <div class="search-wrap">
+            <span>🔍</span>
+            <input type="text" id="inputCari" placeholder="Cari judul, domain, kategori, catatan…"
+                   onkeyup="resetPage()">
+        </div>
+        <select class="sort-sel" id="sortPil" onchange="renderRak()">
+            <option value="newest">↓ Terbaru</option>
+            <option value="oldest">↑ Terlama</option>
+            <option value="az">A → Z</option>
+            <option value="za">Z → A</option>
+            <option value="rating">⭐ Rating</option>
+        </select>
+        <button class="btn btn-ghost btn-sm" onclick="exportData()">📤 Ekspor</button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+        <span class="filter-label">Filter:</span>
+        <button class="f-pill s-belum"  id="fb-belum"  onclick="toggleSF('belum')">⬜ Belum</button>
+        <button class="f-pill s-sedang" id="fb-sedang" onclick="toggleSF('sedang')">📖 Sedang</button>
+        <button class="f-pill s-selesai"id="fb-selesai"onclick="toggleSF('selesai')">✅ Selesai</button>
+        <div id="filterKat" style="display:contents"></div>
+    </div>
+
+    <!-- Result meta -->
+    <div class="result-meta" id="resultMeta"></div>
+
+    <!-- Grid -->
+    <div class="card-grid" id="rakWeb">
+        <div class="loading-state"><div class="spin"></div>Memuat data…</div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="paginasi" id="pgWrap"></div>
+</main>
+
+<!-- ===================== FIREBASE + LOGIC ===================== -->
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, remove, update, set, get }
+        from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+    const cfg = {
+        apiKey:            "AIzaSyBCHrlq5VIizVn42KzyvmUYH3OUs2G74rQ",
+        authDomain:        "katalog-video.firebaseapp.com",
+        databaseURL:       "https://katalog-video-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId:         "katalog-video",
+        storageBucket:     "katalog-video.firebasestorage.app",
+        messagingSenderId: "1035864136490",
+        appId:             "1:1035864136490:web:9abe5dbf41e80b11ad5c53"
+    };
+    const app = initializeApp(cfg);
+    const db  = getDatabase(app);
+    // ── Expose Firebase db & functions for timer sync ──
+    window._fbTimerDb = db;
+    window._fbRTDB = { ref, set, get, remove };
+
+
+    /* ── STATE ── */
+    let daftarKat = [];
+    let dataWeb   = {};
+    let page      = 1;
+    const PER     = 12;
+    let filterKat = [];
+    let filterSt  = null;   // 'belum' | 'sedang' | 'selesai'
+
+    /* ── TOAST ── */
+    window.toast = (msg, type = 'success') => {
+        const ico = { success:'✅', error:'❌', info:'ℹ️' };
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.innerHTML = `<span>${ico[type]}</span><span>${msg}</span>`;
+        document.getElementById('toast-wrap').appendChild(el);
+        setTimeout(() => {
+            el.style.animation = 'toastOut 0.28s ease forwards';
+            setTimeout(() => el.remove(), 290);
+        }, 3000);
+    };
+
+    /* ── THEME ── */
+    const savedTheme = localStorage.getItem('theme_web') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.getElementById('themeBtn').textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+    document.getElementById('themeBtn').onclick = () => {
+        const cur  = document.documentElement.getAttribute('data-theme');
+        const next = cur === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme_web', next);
+        document.getElementById('themeBtn').textContent = next === 'dark' ? '🌙' : '☀️';
+    };
+
+    /* ── PANEL COLLAPSE ── */
+    window.togglePanel = (id) => {
+        const body = document.getElementById(`${id}-body`);
+        const btn  = document.getElementById(`${id}-toggle`);
+        const isOpen = body.classList.toggle('open');
+        body.classList.toggle('shut', !isOpen);
+        btn.textContent = isOpen ? '▲ Tutup' : '▼ Buka';
+    };
+
+    /* ── TAG COLORS ── */
+    const PALETTE = [
+        { bg:'rgba(255,167,38,.14)', t:'#ffa726', b:'rgba(255,167,38,.35)' },
+        { bg:'rgba(66,165,245,.14)', t:'#42a5f5', b:'rgba(66,165,245,.35)' },
+        { bg:'rgba(171,71,188,.14)', t:'#ab47bc', b:'rgba(171,71,188,.35)' },
+        { bg:'rgba(63,185,80,.14)',  t:'#3fb950', b:'rgba(63,185,80,.35)'  },
+        { bg:'rgba(239,83,80,.14)', t:'#ef5350', b:'rgba(239,83,80,.35)'  },
+        { bg:'rgba(38,198,218,.14)',t:'#26c6da', b:'rgba(38,198,218,.35)' },
+        { bg:'rgba(255,213,79,.14)',t:'#e8c400', b:'rgba(255,213,79,.35)' },
+        { bg:'rgba(102,187,106,.14)',t:'#66bb6a',b:'rgba(102,187,106,.35)'},
+    ];
+    const tagStyle = (n) => {
+        let h=0; for(let c of n) h=(h*31+c.charCodeAt(0))&0xffff;
+        return PALETTE[h%PALETTE.length];
+    };
+    const tagHTML = (n) => {
+        const s=tagStyle(n);
+        return `<span class="tag" style="background:${s.bg};color:${s.t};border-color:${s.b}">${n}</span>`;
+    };
+
+    /* ── STATS ── */
+    const updateStats = () => {
+        const all = Object.values(dataWeb);
+        document.getElementById('sTotal').textContent   = all.length;
+        document.getElementById('sBelum').textContent   = all.filter(w=>!w.statusBaca||w.statusBaca==='belum').length;
+        document.getElementById('sSedang').textContent  = all.filter(w=>w.statusBaca==='sedang').length;
+        document.getElementById('sSelesai').textContent = all.filter(w=>w.statusBaca==='selesai').length;
+        document.getElementById('sKat').textContent     = daftarKat.length;
+    };
+
+    /* ── KATEGORI ── */
+    onValue(ref(db,'kategori_web'), snap => {
+        if(snap.exists()) daftarKat = snap.val();
+        else {
+            daftarKat = ["Jurnal Skripsi","Artikel INLISLite","Berita"];
+            set(ref(db,'kategori_web'), daftarKat);
+        }
+        uiKat(); renderFilter(); updateStats();
+    });
+    const saveKat = () => set(ref(db,'kategori_web'), daftarKat);
+
+    window.tambahKategori = () => {
+        const v = document.getElementById('inputKategoriBaru').value.trim();
+        if(!v)              return toast('Nama kategori tidak boleh kosong!','error');
+        if(daftarKat.includes(v)) return toast('Kategori sudah ada!','error');
+        daftarKat.push(v);
+        document.getElementById('inputKategoriBaru').value='';
+        saveKat();
+        toast(`Kategori "${v}" ditambahkan!`);
+    };
+    window.hapusKategori = (i) => {
+        if(!confirm(`Hapus kategori "${daftarKat[i]}"?`)) return;
+        daftarKat.splice(i,1); saveKat(); toast('Kategori dihapus.','info');
+    };
+
+    window.uiKat = () => {
+        const w = document.getElementById('wadahPilihKategori');
+        const l = document.getElementById('listKat');
+        w.innerHTML = ''; l.innerHTML = '';
+        if(!daftarKat.length){
+            l.innerHTML='<span style="font-size:13px;color:var(--text2)">Belum ada kategori.</span>'; return;
+        }
+        daftarKat.forEach((k,i) => {
+            const s = tagStyle(k);
+            l.innerHTML += `<span class="kat-chip" style="background:${s.bg};color:${s.t};border-color:${s.b}">${k}<button class="x" onclick="hapusKategori(${i})">✕</button></span>`;
+            w.innerHTML += `<label class="kat-lbl" id="lbl${i}"><input type="checkbox" value="${k}" class="cek-kat" onchange="this.closest('label').classList.toggle('on',this.checked)"> ${k}</label>`;
+        });
+    };
+
+    window.renderFilter = () => {
+        const c = document.getElementById('filterKat'); c.innerHTML='';
+        daftarKat.forEach(k => {
+            const on = filterKat.includes(k)?'on':'';
+            c.innerHTML += `<button class="f-pill ${on}" onclick="toggleKF('${k}')">${k}</button>`;
+        });
+    };
+    window.toggleKF = (k) => {
+        const i=filterKat.indexOf(k);
+        if(i>-1)filterKat.splice(i,1); else filterKat.push(k);
+        page=1; renderFilter(); renderRak();
+    };
+    window.toggleSF = (s) => {
+        filterSt = filterSt===s ? null : s;
+        ['belum','sedang','selesai'].forEach(x=>{
+            const el=document.getElementById('fb-'+x);
+            if(el) el.classList.toggle('on', filterSt===x);
+        });
+        page=1; renderRak();
+    };
+
+    /* ── WEBSITES ── */
+    onValue(ref(db,'websites'), snap => {
+        dataWeb = snap.val() || {};
+        renderRak(); updateStats();
+    });
+
+    window.simpanWeb = () => {
+        const url  = document.getElementById('linkWeb').value.trim();
+        const judul= document.getElementById('inputJudul').value.trim();
+        let kats   = Array.from(document.querySelectorAll('.cek-kat:checked')).map(c=>c.value);
+
+        if(!url) return toast('Link web wajib diisi!','error');
+        if(!/^https?:\/\//i.test(url)) return toast('URL harus diawali https:// atau http://','error');
+        if(Object.values(dataWeb).some(w=>w.link===url)){
+            toast('Link ini sudah ada di arsip!','error');
+            document.getElementById('linkWeb').value=''; return;
+        }
+        if(!kats.length) kats=['Belum Dikategorikan'];
+
+        let domain=''; try{ domain=new URL(url).hostname; }catch(e){}
+        const title = judul || domain || 'Artikel Tanpa Judul';
+        const icon  = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(url)}&sz=128`;
+        const screen= `https://image.thum.io/get/width/600/crop/350/noanimate/${url}`;
+
+        push(ref(db,'websites'), {
+            judul:title, link:url, domain, icon, screenshot:screen,
+            kategori:kats, statusBaca:'belum', rating:0,
+            lastRead:'', catatan:'', waktuSimpan:Date.now()
+        });
+
+        document.getElementById('linkWeb').value='';
+        document.getElementById('inputJudul').value='';
+        document.querySelectorAll('.cek-kat').forEach(c=>{c.checked=false;c.closest('label').classList.remove('on');});
+        toast('Website berhasil disimpan! 🎉');
+    };
+
+    window.updateProgress = (id) => {
+        const lr   = document.getElementById(`last-${id}`)?.value||'';
+        const note = document.getElementById(`note-${id}`)?.value||'';
+        update(ref(db,`websites/${id}`),{lastRead:lr,catatan:note})
+            .then(()=>toast('Catatan disimpan! 💾'));
+    };
+
+    window.setRating = (id, r) => {
+        update(ref(db,`websites/${id}`),{rating:r});
+        for(let i=1;i<=5;i++){
+            const s=document.getElementById(`st-${id}-${i}`);
+            if(s) s.className='star'+(i<=r?' on':'');
+        }
+    };
+
+    window.setStatus = (id, st) => {
+        update(ref(db,`websites/${id}`),{statusBaca:st}).then(()=>{
+            updateStats();
+            const m={belum:'Ditandai belum dibaca',sedang:'Sedang dibaca 📖',selesai:'Selesai dibaca ✅'};
+            toast(m[st],'info');
+        });
+        ['belum','sedang','selesai'].forEach(s=>{
+            const b=document.getElementById(`stb-${id}-${s}`);
+            if(b) b.className='st'+(s===st?` a-${s}`:'');
+        });
+    };
+
+    window.hapusWeb = (id) => {
+        if(!confirm('Hapus bookmark ini?')) return;
+        remove(ref(db,`websites/${id}`)); toast('Bookmark dihapus.','info');
+    };
+
+    window.copyLink = (url) => {
+        navigator.clipboard.writeText(url).then(()=>toast('Link disalin ke clipboard! 📋','info'));
+    };
+
+    window.toggleNotes = (id) => {
+        const a=document.getElementById(`na-${id}`);
+        const b=document.getElementById(`nb-${id}`);
+        const open=a.classList.toggle('open');
+        b.textContent= open ? '▲ Sembunyikan Catatan' : '📝 Lihat/Edit Catatan';
+    };
+
+    /* ── RENDER ── */
+    window.renderRak = () => {
+        const q    = document.getElementById('inputCari').value.toLowerCase();
+        const sort = document.getElementById('sortPil').value;
+        const rak  = document.getElementById('rakWeb');
+        rak.innerHTML = '';
+
+        let list = Object.entries(dataWeb).map(([id,w])=>({id,...w}));
+
+        if(q) list = list.filter(w=>
+            (w.judul||'').toLowerCase().includes(q)||
+            (w.domain||'').toLowerCase().includes(q)||
+            (w.kategori||[]).some(k=>k.toLowerCase().includes(q))||
+            (w.catatan||'').toLowerCase().includes(q)
+        );
+        if(filterKat.length) list = list.filter(w=>(w.kategori||[]).some(k=>filterKat.includes(k)));
+        if(filterSt){
+            if(filterSt==='belum') list=list.filter(w=>!w.statusBaca||w.statusBaca==='belum');
+            else list=list.filter(w=>w.statusBaca===filterSt);
+        }
+
+        switch(sort){
+            case 'newest': list.sort((a,b)=>(b.waktuSimpan||0)-(a.waktuSimpan||0)); break;
+            case 'oldest': list.sort((a,b)=>(a.waktuSimpan||0)-(b.waktuSimpan||0)); break;
+            case 'az':     list.sort((a,b)=>(a.judul||'').localeCompare(b.judul||'')); break;
+            case 'za':     list.sort((a,b)=>(b.judul||'').localeCompare(a.judul||'')); break;
+            case 'rating': list.sort((a,b)=>(b.rating||0)-(a.rating||0)); break;
+        }
+
+        const total    = list.length;
+        const totalAll = Object.keys(dataWeb).length;
+        const hasFilter= q||filterKat.length||filterSt;
+
+        document.getElementById('resultMeta').innerHTML =
+            `<span>Menampilkan <strong>${total}</strong> dari ${totalAll} bookmark</span>
+             ${hasFilter?`<button class="btn btn-ghost btn-sm" onclick="clearFilters()">✕ Reset Filter</button>`:''}`;
+
+        const totalPg = Math.ceil(total/PER);
+        if(page>totalPg && totalPg>0) page=totalPg;
+        const chunk = list.slice((page-1)*PER, page*PER);
+
+        if(!chunk.length){
+            rak.innerHTML=`<div class="empty-state">
+                <div class="ei">${totalAll===0?'📭':'🔍'}</div>
+                <h3>${totalAll===0?'Rak masih kosong':'Tidak ada hasil'}</h3>
+                <p>${totalAll===0?'Mulai simpan bookmark pertamamu di atas!':'Coba ubah kata kunci atau filter.'}</p>
+            </div>`;
+        } else {
+            chunk.forEach((w,i) => {
+                const tgl   = w.waktuSimpan ? new Date(w.waktuSimpan).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'}) : '';
+                const r     = w.rating||0;
+                const st    = w.statusBaca||'belum';
+                const dom   = w.domain || (()=>{try{return new URL(w.link).hostname;}catch(e){return '';}})();
+                const screen= w.screenshot || `https://image.thum.io/get/width/600/crop/350/noanimate/${w.link}`;
+                const delay = (i%PER)*0.04;
+
+                rak.innerHTML += `
+                <div class="card" style="animation-delay:${delay}s">
+                    <button class="del-btn" onclick="hapusWeb('${w.id}')" title="Hapus">✕</button>
+                    <div class="card-thumb">
+                        <img class="ss" src="${screen}" loading="lazy"
+                             onerror="this.src='${w.icon}';this.style.objectFit='contain';this.style.padding='24px';" alt="">
+                        <div class="thumb-overlay"></div>
+                        <img class="card-fav" src="${w.icon}" onerror="this.style.display='none'" alt="">
+                        ${dom?`<span class="card-domain">${dom}</span>`:''}
+                    </div>
+
+                    <div class="card-body">
+                        <div class="card-tags">${(w.kategori||[]).map(tagHTML).join('')}</div>
+
+                        <div class="card-title" title="${(w.judul||'').replace(/"/g,'&quot;')}">${w.judul||'Tanpa Judul'}</div>
+
+                        <div class="card-meta">
+                            <span>${tgl}</span>
+                            <div class="stars">
+                                ${[1,2,3,4,5].map(n=>`<span class="star${n<=r?' on':''}" id="st-${w.id}-${n}" onclick="setRating('${w.id}',${n})" title="${n} bintang">★</span>`).join('')}
+                            </div>
+                        </div>
+
+                        <div class="st-wrap">
+                            <button class="st${st==='belum'?' a-belum':''}"   id="stb-${w.id}-belum"   onclick="setStatus('${w.id}','belum')">Belum</button>
+                            <button class="st${st==='sedang'?' a-sedang':''}" id="stb-${w.id}-sedang"  onclick="setStatus('${w.id}','sedang')">Dibaca</button>
+                            <button class="st${st==='selesai'?' a-selesai':''}"id="stb-${w.id}-selesai"onclick="setStatus('${w.id}','selesai')">Selesai</button>
+                        </div>
+
+                        <input type="text" id="last-${w.id}" class="prog-input"
+                               value="${w.lastRead||''}" placeholder="Halaman / bab terakhir…">
+
+                        <button class="notes-btn" id="nb-${w.id}" onclick="toggleNotes('${w.id}')">
+                            ${w.catatan?'📝 Lihat Catatan':'📝 Tambah Catatan'}
+                        </button>
+                        <div class="notes-body${w.catatan?' open':''}" id="na-${w.id}">
+                            <textarea id="note-${w.id}" placeholder="Tulis poin penting…">${w.catatan||''}</textarea>
+                        </div>
+                    </div>
+
+                    <div class="card-foot">
+                        <button class="foot-btn" onclick="copyLink('${w.link}')" title="Salin link">🔗</button>
+                        <button class="foot-btn foot-save" onclick="updateProgress('${w.id}')" title="Simpan catatan">💾</button>
+                        <a href="${w.link}" target="_blank" rel="noopener noreferrer" class="btn-open">Buka ➔</a>
+                    </div>
+                </div>`;
+            });
+        }
+
+        renderPg(totalPg);
+    };
+
+    window.clearFilters = () => {
+        document.getElementById('inputCari').value='';
+        filterKat=[]; filterSt=null;
+        ['belum','sedang','selesai'].forEach(s=>document.getElementById('fb-'+s)?.classList.remove('on'));
+        page=1; renderFilter(); renderRak();
+    };
+    window.resetPage = () => { page=1; renderRak(); };
+
+    window.gantiHalaman = (n) => {
+        page=n; renderRak(); window.scrollTo({top:0,behavior:'smooth'});
+    };
+
+    window.renderPg = (total) => {
+        const c=document.getElementById('pgWrap'); c.innerHTML='';
+        if(total<=1) return;
+        const pb=(label,n,dis=false,on=false)=>
+            `<button class="pg${on?' on':''}" onclick="gantiHalaman(${n})" ${dis?'disabled':''}>${label}</button>`;
+
+        c.innerHTML += pb('«', page-1, page===1);
+        for(let i=1;i<=total;i++){
+            if(total>7){
+                if(i===1||i===total||(i>=page-1&&i<=page+1)){
+                    c.innerHTML+=pb(i,i,false,i===page);
+                } else if(i===2||i===total-1){
+                    c.innerHTML+=`<span class="pg-dot">…</span>`;
+                }
+            } else { c.innerHTML+=pb(i,i,false,i===page); }
+        }
+        c.innerHTML += pb('»', page+1, page===total);
+    };
+
+    /* ── EXPORT ── */
+    window.exportData = () => {
+        const blob = new Blob([JSON.stringify({kategori:daftarKat,websites:dataWeb},null,2)],{type:'application/json'});
+        const a    = document.createElement('a');
+        a.href     = URL.createObjectURL(blob);
+        a.download = `rak-website-${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
+        toast('Data berhasil diekspor! 📤','info');
+    };
+</script>
+
+<script>
+    if('serviceWorker' in navigator){
+        window.addEventListener('load',()=>{
+            navigator.serviceWorker.register('./sw.js')
+                .then(r=>console.log('SW OK',r.scope))
+                .catch(e=>console.log('SW fail',e));
+        });
+    }
+</script>
+
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <a href="index.html" class="bnav-item"><span>🎥</span><span>Video</span></a>
+        <a href="course.html" class="bnav-item"><span>📚</span><span>Course</span></a>
+        <a href="habit.html" class="bnav-item"><span>✅</span><span>Habit</span></a>
+        <a href="web.html" class="bnav-item active"><span>🌐</span><span>Web</span></a>
+        <a href="indonesia.html" class="bnav-item"><span>🇮🇩</span><span>Indo</span></a>
+        <a href="jepang.html" class="bnav-item"><span>🇯🇵</span><span>Jepang</span></a>
+        <a href="timer-dashboard.html" class="bnav-item"><span>⏱</span><span>Timer</span></a>
+    </div>
+</nav>
+
+<script>
+// ── TIME TRACKER (Firebase-synced) ──────────────────────────
+(function() {
+    const PAGE_ID = 'web';
+
+    const todayStr = () => {
+        const d = new Date();
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    };
+    const LS_KEY = () => 'waktu_'+PAGE_ID+'_'+todayStr();
+    const FB_PATH = () => 'timer/'+todayStr()+'/'+PAGE_ID;
+
+    const fmt = (s) => {
+        const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+        if(h>0)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+        return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    };
+    const fmtVerbose = (s) => {
+        if(s<60)return s+' detik';
+        const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+        let str='';
+        if(h>0)str+=h+' jam ';
+        if(m>0)str+=m+' menit ';
+        if(sec>0&&h===0)str+=sec+' detik';
+        return str.trim();
+    };
+
+    let totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10);
+    let lastTick=null, intervalId=null, isActive=false, fbDb=null;
+    const MAX_GAP = 5; // toleransi detik antar-detak; lebih dari ini dianggap HP terkunci/app di-suspend, tidak dihitung
+
+    const updateUI = () => {
+        const el=document.getElementById('waktuTeks');
+        const widget=document.getElementById('waktuWidget');
+        const detail=document.getElementById('waktuTooltipDetail');
+        if(!el) return;
+        el.textContent=fmt(totalDetik);
+        if(detail){
+            const tglStr=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
+            detail.textContent=fmtVerbose(totalDetik)+' — '+tglStr;
+        }
+        if(widget){
+            if(totalDetik>=7200){widget.style.background='#fff7ed';widget.style.borderColor='#fed7aa';widget.style.color='#c2410c';}
+            else if(totalDetik>=3600){widget.style.background='#ecfdf5';widget.style.borderColor='#a7f3d0';widget.style.color='#065f46';}
+            else{widget.style.background='';widget.style.borderColor='';widget.style.color='';}
+        }
+    };
+
+    const saveToFirebase = (detik) => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{ window._fbRTDB.set(window._fbRTDB.ref(fbDb, FB_PATH()), detik).catch(()=>{}); }catch(e){}
+    };
+
+    const loadFromFirebase = () => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{
+            window._fbRTDB.get(window._fbRTDB.ref(fbDb, FB_PATH())).then(snap => {
+                if(snap.exists()){
+                    const remote=parseInt(snap.val(),10)||0;
+                    if(remote>totalDetik){
+                        totalDetik=remote;
+                        localStorage.setItem(LS_KEY(), String(totalDetik));
+                        if(isActive) lastTick=Date.now();
+                        updateUI();
+                    }
+                }
+            }).catch(()=>{});
+        }catch(e){}
+    };
+
+    const cleanupOldData = () => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{
+            window._fbRTDB.get(window._fbRTDB.ref(fbDb,'timer')).then(snap => {
+                if(!snap.exists()) return;
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate()-7);
+                const cutoffStr = cutoff.getFullYear()+'-'+String(cutoff.getMonth()+1).padStart(2,'0')+'-'+String(cutoff.getDate()).padStart(2,'0');
+                const deletes = [];
+                snap.forEach(child => {
+                    if(child.key < cutoffStr){
+                        deletes.push(window._fbRTDB.remove(window._fbRTDB.ref(fbDb,'timer/'+child.key)));
+                    }
+                });
+                if(deletes.length) Promise.all(deletes).catch(()=>{});
+            }).catch(()=>{});
+        }catch(e){}
+    };
+
+    const saveAll = (detik) => {
+        localStorage.setItem(LS_KEY(), String(detik));
+        saveToFirebase(detik);
+    };
+
+    // Setiap detak: tambah durasi berdasarkan selisih dari detak SEBELUMNYA (bukan dari awal sesi).
+    // Kalau selisihnya jauh lebih besar dari 1 detik (misal HP dikunci / tab di-suspend berjam-jam
+    // tanpa sempat memicu event pause), lompatan waktu itu DIBUANG, bukan ikut dijumlahkan.
+    // Ini yang memperbaiki bug timer bisa tiba-tiba loncat jadi berjam-jam.
+    const tick = () => {
+        if(!isActive || lastTick===null) return;
+        const now = Date.now();
+        const delta = Math.floor((now-lastTick)/1000);
+        if(delta<=0) return;
+        if(delta<=MAX_GAP){
+            totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10)+delta;
+            localStorage.setItem(LS_KEY(), String(totalDetik));
+        }
+        // delta>MAX_GAP -> dianggap idle/suspend, tidak dihitung, hanya geser titik acuan
+        lastTick = now;
+        updateUI();
+    };
+
+    const jeda = () => {
+        if(!isActive) return; isActive=false;
+        tick();
+        saveAll(totalDetik); clearInterval(intervalId); intervalId=null; lastTick=null;
+        const w=document.getElementById('waktuWidget'); if(w) w.classList.add('paused');
+        updateUI();
+    };
+    const mulai = () => {
+        if(isActive) return;
+        totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10);
+        isActive=true; lastTick=Date.now();
+        const w=document.getElementById('waktuWidget'); if(w) w.classList.remove('paused');
+        clearInterval(intervalId);
+        intervalId=setInterval(tick,1000);
+    };
+
+    const tryWireFirebase = () => {
+        if(window._fbTimerDb){
+            fbDb=window._fbTimerDb;
+            loadFromFirebase();
+            // Cleanup old data once per session (only on first page opened)
+            if(!window._timerCleanupDone){
+                window._timerCleanupDone=true;
+                setTimeout(cleanupOldData, 3000);
+            }
+        } else {
+            setTimeout(tryWireFirebase,300);
+        }
+    };
+
+    // Click widget to open dashboard
+    const widget=document.getElementById('waktuWidget');
+    if(widget){ widget.style.cursor='pointer'; widget.title='Klik untuk lihat riwayat'; widget.addEventListener('click',()=>{ if(window.bukaTimerDashboard) window.bukaTimerDashboard(); }); }
+
+    // Timer jalan terus selama halaman ini masih dibuka (tab pindah, putar video,
+    // atau layar dikunci sebentar TIDAK menghentikan hitungan lagi). Cuma disimpan
+    // ulang saat tab kembali terlihat, dan baru benar-benar berhenti+tersimpan
+    // saat halamannya ditutup/di-refresh (pagehide/beforeunload), atau kalau OS
+    // benar-benar men-suspend halaman (Page Lifecycle 'freeze').
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden && fbDb) loadFromFirebase(); });
+    window.addEventListener('freeze', jeda);
+    window.addEventListener('resume', ()=>{ mulai(); if(fbDb) loadFromFirebase(); });
+    window.addEventListener('pageshow', (e)=>{ mulai(); if(fbDb) loadFromFirebase(); });
+    window.addEventListener('beforeunload',jeda);
+    window.addEventListener('pagehide',jeda);
+    setInterval(()=>{ const s=parseInt(localStorage.getItem(LS_KEY())||'0',10); if(s===0&&totalDetik>60){totalDetik=0;updateUI();} },60000);
+
+    updateUI(); mulai(); tryWireFirebase();
+})();
+
+</script>
+</body>
+</html>

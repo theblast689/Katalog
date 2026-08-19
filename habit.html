@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><script>
+(function(){
+    const SESSION_KEY="fokuspro_auth";
+    const REDIRECT_KEY="fokuspro_redirect";
+    if(sessionStorage.getItem(SESSION_KEY)!=="ok"){
+        sessionStorage.setItem(REDIRECT_KEY, window.location.pathname.split("/").pop()||"index.html");
+        window.location.replace("login.html");
+    }
+})();
+</script>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>⏳ Fokus — Aktivitas Harian</title>
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<meta name="theme-color" content="#6D28D9" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --accent:       #6D28D9;
+  --accent-dark:  #5B21B6;
+  --accent-light: #EDE9FE;
+  --bg:           #F5F3FF;
+  --surface:      #FFFFFF;
+  --border:       #E5E7EB;
+  --text:         #111827;
+  --muted:        #9CA3AF;
+  --danger:       #EF4444;
+  --success:      #10B981;
+  --radius:       14px;
+  --radius-sm:    8px;
+  --shadow:       0 2px 12px rgba(109,40,217,0.07);
+  --shadow-hover: 0 6px 24px rgba(109,40,217,0.13);
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── TOPBAR ── */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  padding: 0 20px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+.topbar-inner {
+  max-width: 1100px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; gap: 14px;
+}
+.logo { font-weight: 800; font-size: 15px; color: var(--accent); white-space: nowrap; }
+.nav-links {
+  display: flex; gap: 4px;
+  flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none;
+}
+.nav-links::-webkit-scrollbar { display: none; }
+.nav-link {
+  padding: 6px 13px; border-radius: 20px;
+  text-decoration: none; font-size: 12.5px; font-weight: 700;
+  transition: opacity .2s, transform .15s; white-space: nowrap;
+}
+.nav-link:hover { opacity: .8; transform: translateY(-1px); }
+.nav-link.active { background: var(--accent) !important; color: #fff !important; }
+
+/* ── BOTTOM NAV (mobile) ── */
+.bottom-nav {
+  display: none; position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  z-index: 200; padding: 0 0 env(safe-area-inset-bottom);
+}
+.bottom-nav-inner {
+  display: flex; justify-content: space-around; height: 56px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.bottom-nav-inner::-webkit-scrollbar { display: none; }
+.bnav-item {
+  flex: 1; min-width: 52px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-decoration: none; font-size: 9.5px; font-weight: 700;
+  color: var(--muted); gap: 2px; transition: color .15s;
+}
+.bnav-item.active { color: var(--accent); }
+.bnav-item span:first-child { font-size: 18px; line-height: 1; }
+
+/* ── MAIN ── */
+.main {
+  max-width: 1100px; margin: 0 auto;
+  padding: 24px 20px 80px;
+}
+
+/* ── GRID LAYOUT ── */
+.grid-top {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.grid-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+/* ── PANEL ── */
+.panel {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 20px 22px;
+  box-shadow: var(--shadow);
+}
+.panel-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .07em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 16px;
+}
+
+/* ── FORM ── */
+.form-group { margin-bottom: 12px; }
+.form-group label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: #374151; margin-bottom: 5px;
+}
+.form-group input,
+.form-group select {
+  width: 100%; padding: 9px 12px;
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 13px; color: var(--text);
+  background: var(--bg); outline: none;
+  transition: border-color .15s, box-shadow .15s;
+}
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--accent); background: #fff;
+  box-shadow: 0 0 0 3px rgba(109,40,217,0.1);
+}
+.dur-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-add {
+  width: 100%; padding: 11px;
+  background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: background .15s, transform .1s;
+  margin-top: 4px;
+}
+.btn-add:hover { background: var(--accent-dark); }
+.btn-add:active { transform: scale(0.98); }
+
+/* ── TODAY ── */
+.today-total {
+  font-size: 2rem; font-weight: 700;
+  letter-spacing: -1px; line-height: 1;
+}
+.today-sub {
+  font-size: 11px; color: var(--muted); margin-bottom: 14px;
+}
+.today-list { list-style: none; max-height: 240px; overflow-y: auto; }
+.today-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 7px 0; border-bottom: 1px solid var(--border);
+  font-size: 12.5px;
+}
+.today-item:last-child { border-bottom: none; }
+.dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.today-name { flex: 1; font-weight: 600; }
+.chip {
+  font-size: 10px; padding: 2px 8px;
+  border-radius: 20px; font-weight: 700;
+  white-space: nowrap;
+}
+.today-dur { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.empty-state {
+  text-align: center; color: var(--muted);
+  font-size: 12px; padding: 20px 0;
+}
+
+/* ── CHART ── */
+.chart-wrap { position: relative; height: 200px; }
+
+/* ── LOADING ── */
+.loading-bar {
+  text-align: center; color: var(--muted);
+  font-size: 12px; padding: 30px 0;
+}
+
+/* ── HISTORY ── */
+.history-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; flex-wrap: wrap; gap: 10px;
+}
+.month-nav { display: flex; align-items: center; gap: 8px; }
+.btn-nav {
+  background: none; border: 1.5px solid var(--border);
+  border-radius: 6px; width: 30px; height: 30px;
+  cursor: pointer; font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text); transition: background .1s;
+}
+.btn-nav:hover { background: var(--accent-light); border-color: var(--accent); }
+.month-label { font-size: 13px; font-weight: 700; min-width: 110px; text-align: center; }
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.history-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12.5px; min-width: 480px;
+}
+.history-table th {
+  text-align: left; font-size: 10px;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--muted); font-weight: 700;
+  padding: 0 8px 10px; border-bottom: 1px solid var(--border);
+}
+.history-table td {
+  padding: 8px; border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.history-table tr:last-child td { border-bottom: none; }
+.history-table tr:hover td { background: #FAFAFA; }
+
+.btn-edit, .btn-delete {
+  border: none; background: none; cursor: pointer;
+  font-size: 11px; padding: 4px 9px; border-radius: 6px;
+  font-family: inherit; font-weight: 700;
+  transition: background .1s;
+}
+.btn-edit { color: var(--accent); }
+.btn-edit:hover { background: var(--accent-light); }
+.btn-delete { color: var(--danger); }
+.btn-delete:hover { background: #FEE2E2; }
+
+/* ── PAGINATION ── */
+.pagination {
+  display: flex; justify-content: center; align-items: center;
+  gap: 6px; margin-top: 16px; flex-wrap: wrap;
+}
+.page-info { font-size: 11px; color: var(--muted); }
+.btn-page {
+  padding: 5px 12px; border: 1.5px solid var(--border);
+  border-radius: 6px; background: var(--surface);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: all .1s;
+}
+.btn-page:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-light); }
+.btn-page.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-page:disabled { opacity: .4; cursor: not-allowed; }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4); z-index: 300;
+  align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: var(--radius);
+  padding: 24px; width: 100%; max-width: 380px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+}
+.modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 16px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 14px; }
+.btn-cancel {
+  flex: 1; padding: 10px; background: var(--bg);
+  border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+}
+.btn-save {
+  flex: 1; padding: 10px; background: var(--accent); color: #fff;
+  border: none; border-radius: var(--radius-sm);
+  font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+}
+.btn-save:hover { background: var(--accent-dark); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 70px; left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: #111827; color: #fff;
+  padding: 10px 20px; border-radius: 20px;
+  font-size: 12.5px; font-weight: 600;
+  transition: transform .25s ease; z-index: 400;
+  white-space: nowrap; box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ── SYNC STATUS ── */
+.sync-dot {
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; margin-right: 5px; vertical-align: middle;
+}
+.sync-ok { background: var(--success); }
+.sync-err { background: var(--danger); }
+.sync-pending { background: var(--muted); }
+.sync-label { font-size: 11px; color: var(--muted); }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .bottom-nav { display: block; }
+  .main { padding: 14px 12px 72px; }
+  .topbar { padding: 0 14px; }
+  .topbar-inner { height: 50px; }
+  .grid-top { grid-template-columns: 1fr; }
+  .grid-charts { grid-template-columns: 1fr; }
+  .panel { padding: 16px 14px; margin-bottom: 14px; }
+  .today-total { font-size: 1.6rem; }
+}
+@media (max-width: 400px) {
+  .logo { font-size: 13px; }
+  .month-label { min-width: 90px; font-size: 12px; }
+}
+
+        /* ── TIME TRACKER WIDGET ── */
+        .waktu-hari-ini {
+            display: flex; align-items: center; gap: 7px;
+            background: var(--accent-light, #ede9fe);
+            border: 1.5px solid #c4b5fd;
+            border-radius: 20px; padding: 5px 13px;
+            font-size: 12px; font-weight: 700; color: var(--accent, #6D28D9);
+            white-space: nowrap; cursor: default; user-select: none; flex-shrink: 0;
+        }
+        .waktu-hari-ini .dot-live {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #10b981; animation: blink-dot 1.4s ease-in-out infinite; flex-shrink: 0;
+        }
+        .waktu-hari-ini.paused .dot-live { background: #f59e0b; animation: none; }
+        @keyframes blink-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .waktu-wrap { position: relative; flex-shrink: 0; }
+        .waktu-tooltip {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: #1c1c1e; color: #fff; font-size: 11px; font-weight: 600;
+            padding: 8px 12px; border-radius: 10px; white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 300;
+        }
+        .waktu-tooltip::before {
+            content:''; position:absolute; top:-5px; right:16px;
+            border-left:5px solid transparent; border-right:5px solid transparent;
+            border-bottom:5px solid #1c1c1e;
+        }
+        .waktu-wrap:hover .waktu-tooltip { display: block; }
+        </style>
+</head>
+<body>
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="logo">⏳ Fokus Pro</div>
+        <div class="waktu-wrap">
+            <div class="waktu-hari-ini" id="waktuWidget">
+                <span class="dot-live"></span>
+                <span id="waktuTeks">00:00</span>
+            </div>
+            <div class="waktu-tooltip">
+                ⏱ Waktu di halaman ini hari ini<br>
+                <span id="waktuTooltipDetail" style="color:#aaa;font-weight:500;">Memuat...</span>
+            </div>
+        </div>
+    <nav class="nav-links">
+            <a href="index.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🎥 Video</a>
+            <a href="course.html" class="nav-link" style="background:#e4e6eb;color:#050505;">📚 Course</a>
+            <a href="habit.html" class="nav-link active" style="background:var(--blue,#1877f2);color:#fff;">✅ Habit</a>
+            <a href="web.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🌐 Web</a>
+            <a href="indonesia.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🇮🇩 Indo</a>
+            <a href="jepang.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🇯🇵 Jepang</a>
+            <a href="timer-dashboard.html" class="nav-link" style="background:#e4e6eb;color:#050505;">⏱ Timer</a>
+    </nav>
+    <span class="sync-label"><span class="sync-dot sync-pending" id="syncDot"></span><span id="syncText">Menghubungkan…</span></span>
+  </div>
+</header>
+
+<!-- ── MAIN ── -->
+<main class="main">
+
+  <!-- Top grid: form + today -->
+  <div class="grid-top">
+
+    <!-- ADD FORM -->
+    <div class="panel">
+      <div class="panel-title">Tambah Aktivitas</div>
+
+      <div class="form-group">
+        <label>Nama Aktivitas</label>
+        <input type="text" id="actName" placeholder="Contoh: Membaca buku…" maxlength="80" />
+      </div>
+      <div class="form-group">
+        <label>Kategori</label>
+        <select id="actCat">
+          <option value="Produktif">💼 Produktif</option>
+          <option value="Belajar">🎓 Belajar</option>
+          <option value="Membaca">📖 Membaca</option>
+          <option value="Olahraga">🏃 Olahraga</option>
+          <option value="Hiburan">🎮 Hiburan</option>
+          <option value="Istirahat">😴 Istirahat</option>
+          <option value="Sosial">💬 Sosial</option>
+          <option value="Lainnya">🔘 Lainnya</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Durasi</label>
+        <div class="dur-row">
+          <input type="number" id="actHour" placeholder="Jam" min="0" max="23" />
+          <input type="number" id="actMin"  placeholder="Menit" min="0" max="59" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tanggal</label>
+        <input type="date" id="actDate" />
+      </div>
+      <button class="btn-add" onclick="addActivity()">＋ Tambah Aktivitas</button>
+    </div>
+
+    <!-- TODAY SUMMARY -->
+    <div class="panel">
+      <div class="panel-title">Hari Ini</div>
+      <div class="today-total" id="totalToday">0 mnt</div>
+      <div class="today-sub" id="todayBadge"></div>
+      <ul class="today-list" id="todayList">
+        <li class="empty-state">Belum ada aktivitas hari ini</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid-charts">
+    <div class="panel">
+      <div class="panel-title">Waktu per Hari — Bulan Ini</div>
+      <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">Distribusi Kategori — Bulan Ini</div>
+      <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel">
+    <div class="history-header">
+      <div class="panel-title" style="margin-bottom:0">Riwayat Aktivitas</div>
+      <div class="month-nav">
+        <button class="btn-nav" onclick="changeMonth(-1)">‹</button>
+        <span class="month-label" id="monthLabel"></span>
+        <button class="btn-nav" onclick="changeMonth(1)">›</button>
+      </div>
+    </div>
+
+    <div id="historyLoading" class="loading-bar">Memuat data…</div>
+
+    <div class="tbl-wrap">
+      <table class="history-table" id="historyTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>Aktivitas</th>
+            <th>Kategori</th>
+            <th>Durasi</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+
+    <div class="pagination" id="paginationWrap"></div>
+  </div>
+
+</main>
+
+<!-- ── BOTTOM NAV (mobile) ── -->
+<nav class="bottom-nav">
+  <div class="bottom-nav-inner">
+        <a href="index.html" class="bnav-item"><span>🎥</span><span>Video</span></a>
+        <a href="course.html" class="bnav-item"><span>📚</span><span>Course</span></a>
+        <a href="habit.html" class="bnav-item active"><span>✅</span><span>Habit</span></a>
+        <a href="web.html" class="bnav-item"><span>🌐</span><span>Web</span></a>
+        <a href="indonesia.html" class="bnav-item"><span>🇮🇩</span><span>Indo</span></a>
+        <a href="jepang.html" class="bnav-item"><span>🇯🇵</span><span>Jepang</span></a>
+        <a href="timer-dashboard.html" class="bnav-item"><span>⏱</span><span>Timer</span></a>
+  </div>
+</nav>
+
+<!-- ── EDIT MODAL ── -->
+<div class="modal-overlay" id="editModal">
+  <div class="modal">
+    <h3>✏️ Edit Aktivitas</h3>
+    <div class="form-group">
+      <label>Nama Aktivitas</label>
+      <input type="text" id="editName" maxlength="80" />
+    </div>
+    <div class="form-group">
+      <label>Kategori</label>
+      <select id="editCat">
+        <option value="Produktif">💼 Produktif</option>
+        <option value="Belajar">🎓 Belajar</option>
+        <option value="Membaca">📖 Membaca</option>
+        <option value="Olahraga">🏃 Olahraga</option>
+        <option value="Hiburan">🎮 Hiburan</option>
+        <option value="Istirahat">😴 Istirahat</option>
+        <option value="Sosial">💬 Sosial</option>
+        <option value="Lainnya">🔘 Lainnya</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Durasi</label>
+      <div class="dur-row">
+        <input type="number" id="editHour" placeholder="Jam" min="0" max="23" />
+        <input type="number" id="editMin"  placeholder="Menit" min="0" max="59" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Tanggal</label>
+      <input type="date" id="editDate" />
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button class="btn-save" onclick="saveEdit()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── FIREBASE + APP SCRIPT ── -->
+<script type="module">
+import { initializeApp }                            from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set, get } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+/* ─── Firebase config ─── */
+const firebaseConfig = {
+  apiKey:            "AIzaSyBCHrlq5VIizVn42KzyvmUYH3OUs2G74rQ",
+  authDomain:        "katalog-video.firebaseapp.com",
+  databaseURL:       "https://katalog-video-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "katalog-video",
+  storageBucket:     "katalog-video.firebasestorage.app",
+  messagingSenderId: "1035864136490",
+  appId:             "1:1035864136490:web:9abe5dbf41e80b11ad5c53"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+// ── Expose Firebase db & functions for timer sync ──
+window._fbTimerDb = db;
+window._fbRTDB = { ref, set, get, remove };
+
+const DBREF = ref(db, 'aktivitas');
+
+/* ─── Category colors ─── */
+const CAT_COLORS = {
+  Produktif: '#6D28D9',
+  Belajar:   '#0EA5E9',
+  Membaca:   '#8B5CF6',
+  Olahraga:  '#10B981',
+  Hiburan:   '#F59E0B',
+  Istirahat: '#6B7280',
+  Sosial:    '#F97316',
+  Lainnya:   '#9CA3AF',
+};
+
+/* ─── State ─── */
+let allData     = {};   // { firebaseKey: { name, cat, mins, date } }
+let viewMonth   = new Date();
+let editKey     = null;
+let barInst     = null;
+let pieInst     = null;
+let histPage    = 1;
+const PAGE_SIZE = 20;
+
+/* ─── Sync indicator ─── */
+function setSyncStatus(state) {
+  const dot  = document.getElementById('syncDot');
+  const txt  = document.getElementById('syncText');
+  dot.className = 'sync-dot ' + (state === 'ok' ? 'sync-ok' : state === 'err' ? 'sync-err' : 'sync-pending');
+  txt.textContent = state === 'ok' ? 'Tersinkron' : state === 'err' ? 'Gagal' : 'Menghubungkan…';
+}
+
+/* ─── Helpers ─── */
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function formatDur(mins) {
+  if (!mins) return '0 mnt';
+  const h = Math.floor(mins/60), m = mins%60;
+  if (h && m) return `${h}j ${m}mnt`;
+  return h ? `${h} jam` : `${m} mnt`;
+}
+
+function escHtml(s) {
+  return String(s||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function isWithin1Year(dateStr) {
+  const d    = new Date(dateStr + 'T00:00:00');
+  const now  = new Date();
+  const oneY = new Date(now);
+  oneY.setFullYear(now.getFullYear() - 1);
+  return d >= oneY && d <= now;
+}
+
+
+/* ─── Auto-cleanup aktivitas > 1 tahun dari Firebase ─── */
+async function cleanupOldActivities() {
+  try {
+    const snap = await get(DBREF);
+    if (!snap.exists()) return;
+    const now   = new Date();
+    const oneYearAgo = new Date(now);
+    oneYearAgo.setFullYear(now.getFullYear() - 1);
+    const deletes = [];
+    snap.forEach(child => {
+      const v = child.val();
+      if (v.date) {
+        const d = new Date(v.date + 'T00:00:00');
+        if (d < oneYearAgo) {
+          deletes.push(remove(ref(db, 'aktivitas/' + child.key)));
+        }
+      }
+    });
+    if (deletes.length) {
+      await Promise.all(deletes);
+      console.log('[habit] Cleanup: ' + deletes.length + ' aktivitas lama dihapus dari Firebase.');
+    }
+  } catch(e) {
+    console.warn('[habit] Cleanup gagal:', e);
+  }
+}
+
+// Jalankan cleanup sekali saat halaman dibuka (delay 5 detik supaya tidak ganggu load awal)
+setTimeout(cleanupOldActivities, 5000);
+
+/* ─── Init ─── */
+document.getElementById('actDate').value = todayStr();
+document.getElementById('todayBadge').textContent = new Date()
+  .toLocaleDateString('id-ID', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+viewMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+/* ─── Firebase listener ─── */
+onValue(DBREF, (snap) => {
+  setSyncStatus('ok');
+  allData = {};
+  if (snap.exists()) {
+    snap.forEach(child => {
+      const v = child.val();
+      // Only keep entries within 1 year
+      if (v.date && isWithin1Year(v.date)) {
+        allData[child.key] = v;
+      }
+    });
+  }
+  renderAll();
+  document.getElementById('historyLoading').style.display = 'none';
+  document.getElementById('historyTable').style.display   = '';
+}, (err) => {
+  setSyncStatus('err');
+  console.error(err);
+});
+
+/* ─── Add activity ─── */
+window.addActivity = function() {
+  const name = document.getElementById('actName').value.trim();
+  const cat  = document.getElementById('actCat').value;
+  const h    = parseInt(document.getElementById('actHour').value) || 0;
+  const m    = parseInt(document.getElementById('actMin').value)  || 0;
+  const date = document.getElementById('actDate').value;
+
+  if (!name)        { showToast('Isi nama aktivitas!'); return; }
+  if (!date)        { showToast('Pilih tanggal!'); return; }
+  if (!h && !m)     { showToast('Isi durasi!'); return; }
+
+  setSyncStatus('pending');
+  push(DBREF, { name, cat, mins: h*60+m, date, ts: Date.now() })
+    .then(() => {
+      document.getElementById('actName').value = '';
+      document.getElementById('actHour').value = '';
+      document.getElementById('actMin').value  = '';
+      document.getElementById('actDate').value = todayStr();
+      showToast('Aktivitas ditambahkan ✓');
+    })
+    .catch(() => { setSyncStatus('err'); showToast('Gagal menyimpan!'); });
+};
+
+/* ─── Today ─── */
+function renderToday() {
+  const today = todayStr();
+  const items = Object.entries(allData)
+    .filter(([,v]) => v.date === today)
+    .sort(([,a],[,b]) => (b.ts||0)-(a.ts||0));
+  const total = items.reduce((s,[,v]) => s + (v.mins||0), 0);
+  const h = Math.floor(total/60), m = total%60;
+  document.getElementById('totalToday').textContent =
+    h ? `${h}j ${m}mnt` : `${m} mnt`;
+  const ul = document.getElementById('todayList');
+  if (!items.length) {
+    ul.innerHTML = '<li class="empty-state">Belum ada aktivitas hari ini</li>';
+    return;
+  }
+  ul.innerHTML = items.map(([,v]) => {
+    const col = CAT_COLORS[v.cat] || '#999';
+    return `<li class="today-item">
+      <span class="dot" style="background:${col}"></span>
+      <span class="today-name">${escHtml(v.name)}</span>
+      <span class="chip" style="background:${col}1a;color:${col}">${v.cat}</span>
+      <span class="today-dur">${formatDur(v.mins)}</span>
+    </li>`;
+  }).join('');
+}
+
+/* ─── Bar chart ─── */
+function renderBar() {
+  const yr = viewMonth.getFullYear(), mo = viewMonth.getMonth();
+  const days = new Date(yr, mo+1, 0).getDate();
+  const data = Array.from({length:days}, (_,i) => {
+    const ds = `${yr}-${String(mo+1).padStart(2,'0')}-${String(i+1).padStart(2,'0')}`;
+    const mins = Object.values(allData)
+      .filter(v => v.date === ds)
+      .reduce((s,v) => s+(v.mins||0), 0);
+    return +(mins/60).toFixed(2);
+  });
+  if (barInst) barInst.destroy();
+  const ctx = document.getElementById('barChart').getContext('2d');
+  barInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: Array.from({length:days},(_,i)=>i+1),
+      datasets: [{ data, backgroundColor:'#6D28D91a', borderColor:'#6D28D9', borderWidth:1.5, borderRadius:4 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{ callbacks:{ label:c=>`${c.parsed.y} jam`, title:c=>`Tgl ${c[0].label}` }}},
+      scales:{
+        x:{ grid:{display:false}, ticks:{font:{size:9},color:'#9CA3AF',maxTicksLimit:10}},
+        y:{ grid:{color:'#F3F4F6'}, ticks:{font:{size:9},color:'#9CA3AF',callback:v=>v+'j'}}
+      }
+    }
+  });
+}
+
+/* ─── Pie chart ─── */
+function renderPie() {
+  const yr = viewMonth.getFullYear(), mo = viewMonth.getMonth();
+  const items = Object.values(allData).filter(v => {
+    const d = new Date(v.date+'T00:00:00');
+    return d.getFullYear()===yr && d.getMonth()===mo;
+  });
+  const catMap = {};
+  items.forEach(v => { catMap[v.cat] = (catMap[v.cat]||0) + (v.mins||0); });
+  const cats = Object.keys(catMap);
+  if (pieInst) pieInst.destroy();
+  const ctx = document.getElementById('pieChart').getContext('2d');
+  if (!cats.length) {
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    ctx.fillStyle='#9CA3AF'; ctx.font='12px Plus Jakarta Sans';
+    ctx.textAlign='center';
+    ctx.fillText('Belum ada data', ctx.canvas.width/2, ctx.canvas.height/2);
+    return;
+  }
+  pieInst = new Chart(ctx, {
+    type:'doughnut',
+    data:{
+      labels: cats,
+      datasets:[{
+        data: cats.map(c=>catMap[c]),
+        backgroundColor: cats.map(c=>CAT_COLORS[c]||'#999'),
+        borderColor:'#fff', borderWidth:3, hoverOffset:6
+      }]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'60%',
+      plugins:{
+        legend:{ position:'right', labels:{ boxWidth:10, boxHeight:10, font:{size:10}, color:'#374151', padding:8 }},
+        tooltip:{ callbacks:{ label:c=>` ${formatDur(c.parsed)}` }}
+      }
+    }
+  });
+}
+
+/* ─── History + Pagination ─── */
+function renderHistory() {
+  const yr = viewMonth.getFullYear(), mo = viewMonth.getMonth();
+  document.getElementById('monthLabel').textContent =
+    viewMonth.toLocaleDateString('id-ID',{month:'long',year:'numeric'});
+
+  const items = Object.entries(allData)
+    .filter(([,v]) => {
+      const d = new Date(v.date+'T00:00:00');
+      return d.getFullYear()===yr && d.getMonth()===mo;
+    })
+    .sort(([,a],[,b]) => b.date.localeCompare(a.date) || (b.ts||0)-(a.ts||0));
+
+  const total  = items.length;
+  const pages  = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  if (histPage > pages) histPage = pages;
+
+  const slice  = items.slice((histPage-1)*PAGE_SIZE, histPage*PAGE_SIZE);
+  const tbody  = document.getElementById('historyBody');
+
+  if (!total) {
+    tbody.innerHTML = `<tr><td colspan="5" class="empty-state" style="padding:24px;text-align:center;color:#9CA3AF">Tidak ada aktivitas di bulan ini</td></tr>`;
+    document.getElementById('paginationWrap').innerHTML = '';
+    return;
+  }
+
+  tbody.innerHTML = slice.map(([key, v]) => {
+    const d   = new Date(v.date+'T00:00:00');
+    const dl  = d.toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+    const col = CAT_COLORS[v.cat]||'#999';
+    return `<tr>
+      <td style="color:#6B7280;font-size:11px;white-space:nowrap">${dl}</td>
+      <td style="font-weight:600">${escHtml(v.name)}</td>
+      <td><span class="chip" style="background:${col}1a;color:${col}">${v.cat}</span></td>
+      <td style="color:#6B7280;font-size:11px;white-space:nowrap">${formatDur(v.mins)}</td>
+      <td style="white-space:nowrap">
+        <button class="btn-edit" onclick="openEdit('${key}')">Edit</button>
+        <button class="btn-delete" onclick="delActivity('${key}')">Hapus</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  /* Pagination buttons */
+  let pHtml = `<span class="page-info">${total} aktivitas · hal ${histPage}/${pages}</span>`;
+  pHtml += `<button class="btn-page" onclick="gotoPage(${histPage-1})" ${histPage<=1?'disabled':''}>‹</button>`;
+
+  // Show limited page numbers around current
+  const start = Math.max(1, histPage-2);
+  const end   = Math.min(pages, histPage+2);
+  if (start > 1) pHtml += `<button class="btn-page" onclick="gotoPage(1)">1</button>${start>2?'<span style="color:var(--muted);font-size:12px">…</span>':''}`;
+  for (let i=start; i<=end; i++) {
+    pHtml += `<button class="btn-page ${i===histPage?'active':''}" onclick="gotoPage(${i})">${i}</button>`;
+  }
+  if (end < pages) pHtml += `${end<pages-1?'<span style="color:var(--muted);font-size:12px">…</span>':''}<button class="btn-page" onclick="gotoPage(${pages})">${pages}</button>`;
+  pHtml += `<button class="btn-page" onclick="gotoPage(${histPage+1})" ${histPage>=pages?'disabled':''}>›</button>`;
+
+  document.getElementById('paginationWrap').innerHTML = pHtml;
+}
+
+window.gotoPage = function(p) {
+  const yr = viewMonth.getFullYear(), mo = viewMonth.getMonth();
+  const total = Object.values(allData).filter(v=>{
+    const d=new Date(v.date+'T00:00:00'); return d.getFullYear()===yr&&d.getMonth()===mo;
+  }).length;
+  const pages = Math.max(1, Math.ceil(total/PAGE_SIZE));
+  histPage = Math.max(1, Math.min(pages, p));
+  renderHistory();
+  document.querySelector('.panel:last-child').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+/* ─── Month nav ─── */
+window.changeMonth = function(dir) {
+  viewMonth = new Date(viewMonth.getFullYear(), viewMonth.getMonth()+dir, 1);
+  histPage  = 1;
+  renderBar(); renderPie(); renderHistory();
+};
+
+/* ─── Edit ─── */
+window.openEdit = function(key) {
+  editKey = key;
+  const v = allData[key];
+  if (!v) return;
+  document.getElementById('editName').value = v.name||'';
+  document.getElementById('editCat').value  = v.cat||'Lainnya';
+  document.getElementById('editHour').value = Math.floor((v.mins||0)/60);
+  document.getElementById('editMin').value  = (v.mins||0)%60;
+  document.getElementById('editDate').value = v.date||'';
+  document.getElementById('editModal').classList.add('open');
+};
+
+window.closeModal = function() {
+  document.getElementById('editModal').classList.remove('open');
+  editKey = null;
+};
+
+window.saveEdit = function() {
+  if (!editKey) return;
+  const name = document.getElementById('editName').value.trim();
+  const cat  = document.getElementById('editCat').value;
+  const h    = parseInt(document.getElementById('editHour').value)||0;
+  const m    = parseInt(document.getElementById('editMin').value)||0;
+  const date = document.getElementById('editDate').value;
+  if (!name) { showToast('Isi nama aktivitas!'); return; }
+  setSyncStatus('pending');
+  update(ref(db, `aktivitas/${editKey}`), { name, cat, mins:h*60+m, date })
+    .then(() => { showToast('Diperbarui ✓'); closeModal(); })
+    .catch(() => { setSyncStatus('err'); showToast('Gagal menyimpan!'); });
+};
+
+/* ─── Delete ─── */
+window.delActivity = function(key) {
+  if (!confirm('Hapus aktivitas ini?')) return;
+  setSyncStatus('pending');
+  remove(ref(db, `aktivitas/${key}`))
+    .then(() => showToast('Dihapus'))
+    .catch(() => { setSyncStatus('err'); showToast('Gagal menghapus!'); });
+};
+
+/* ─── Close modal on overlay click ─── */
+document.getElementById('editModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+/* ─── Render all ─── */
+function renderAll() {
+  renderToday();
+  renderBar();
+  renderPie();
+  renderHistory();
+}
+</script>
+
+<script>
+// ── TIME TRACKER (Firebase-synced) ──────────────────────────
+(function() {
+    const PAGE_ID = 'habit';
+
+    const todayStr = () => {
+        const d = new Date();
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    };
+    const LS_KEY = () => 'waktu_'+PAGE_ID+'_'+todayStr();
+    const FB_PATH = () => 'timer/'+todayStr()+'/'+PAGE_ID;
+
+    const fmt = (s) => {
+        const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+        if(h>0)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+        return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    };
+    const fmtVerbose = (s) => {
+        if(s<60)return s+' detik';
+        const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+        let str='';
+        if(h>0)str+=h+' jam ';
+        if(m>0)str+=m+' menit ';
+        if(sec>0&&h===0)str+=sec+' detik';
+        return str.trim();
+    };
+
+    let totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10);
+    let startTime=null, intervalId=null, isActive=false, fbDb=null;
+
+    const updateUI = () => {
+        const el=document.getElementById('waktuTeks');
+        const widget=document.getElementById('waktuWidget');
+        const detail=document.getElementById('waktuTooltipDetail');
+        if(!el) return;
+        el.textContent=fmt(totalDetik);
+        if(detail){
+            const tglStr=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
+            detail.textContent=fmtVerbose(totalDetik)+' — '+tglStr;
+        }
+        if(widget){
+            if(totalDetik>=7200){widget.style.background='#fff7ed';widget.style.borderColor='#fed7aa';widget.style.color='#c2410c';}
+            else if(totalDetik>=3600){widget.style.background='#ecfdf5';widget.style.borderColor='#a7f3d0';widget.style.color='#065f46';}
+            else{widget.style.background='';widget.style.borderColor='';widget.style.color='';}
+        }
+    };
+
+    const saveToFirebase = (detik) => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{ window._fbRTDB.set(window._fbRTDB.ref(fbDb, FB_PATH()), detik).catch(()=>{}); }catch(e){}
+    };
+
+    const loadFromFirebase = () => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{
+            window._fbRTDB.get(window._fbRTDB.ref(fbDb, FB_PATH())).then(snap => {
+                if(snap.exists()){
+                    const remote=parseInt(snap.val(),10)||0;
+                    if(remote>totalDetik){
+                        totalDetik=remote;
+                        localStorage.setItem(LS_KEY(), String(totalDetik));
+                        if(isActive) startTime=Date.now();
+                        updateUI();
+                    }
+                }
+            }).catch(()=>{});
+        }catch(e){}
+    };
+
+    const cleanupOldData = () => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{
+            window._fbRTDB.get(window._fbRTDB.ref(fbDb,'timer')).then(snap => {
+                if(!snap.exists()) return;
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate()-7);
+                const cutoffStr = cutoff.getFullYear()+'-'+String(cutoff.getMonth()+1).padStart(2,'0')+'-'+String(cutoff.getDate()).padStart(2,'0');
+                const deletes = [];
+                snap.forEach(child => {
+                    if(child.key < cutoffStr){
+                        deletes.push(window._fbRTDB.remove(window._fbRTDB.ref(fbDb,'timer/'+child.key)));
+                    }
+                });
+                if(deletes.length) Promise.all(deletes).catch(()=>{});
+            }).catch(()=>{});
+        }catch(e){}
+    };
+
+    const saveAll = (detik) => {
+        localStorage.setItem(LS_KEY(), String(detik));
+        saveToFirebase(detik);
+    };
+
+    const jeda = () => {
+        if(!isActive) return; isActive=false;
+        const elapsed=Math.floor((Date.now()-startTime)/1000);
+        totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10)+elapsed;
+        saveAll(totalDetik); clearInterval(intervalId); startTime=null;
+        const w=document.getElementById('waktuWidget'); if(w) w.classList.add('paused');
+        updateUI();
+    };
+    const mulai = () => {
+        if(isActive) return; isActive=true; startTime=Date.now();
+        const w=document.getElementById('waktuWidget'); if(w) w.classList.remove('paused');
+        intervalId=setInterval(()=>{
+            const elapsed=Math.floor((Date.now()-startTime)/1000);
+            totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10)+elapsed;
+            updateUI();
+        },1000);
+    };
+
+    const tryWireFirebase = () => {
+        if(window._fbTimerDb){
+            fbDb=window._fbTimerDb;
+            loadFromFirebase();
+            // Cleanup old data once per session (only on first page opened)
+            if(!window._timerCleanupDone){
+                window._timerCleanupDone=true;
+                setTimeout(cleanupOldData, 3000);
+            }
+        } else {
+            setTimeout(tryWireFirebase,300);
+        }
+    };
+
+    // Click widget to open dashboard
+    const widget=document.getElementById('waktuWidget');
+    if(widget){ widget.style.cursor='pointer'; widget.title='Klik untuk lihat riwayat'; widget.addEventListener('click',()=>{ if(window.bukaTimerDashboard) window.bukaTimerDashboard(); }); }
+
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden && fbDb) loadFromFirebase(); });
+    window.addEventListener('freeze', jeda);
+    window.addEventListener('resume', mulai);
+    window.addEventListener('beforeunload',jeda);
+    window.addEventListener('pagehide',jeda);
+    setInterval(()=>{ const s=parseInt(localStorage.getItem(LS_KEY())||'0',10); if(s===0&&totalDetik>60){totalDetik=0;updateUI();} },60000);
+
+    updateUI(); mulai(); tryWireFirebase();
+})();
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+            .then(r => console.log('SW registered:', r.scope))
+            .catch(e => console.log('SW failed:', e));
+    });
+}
+</script>
+</body>
+</html>

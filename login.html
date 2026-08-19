@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Login — FokusPro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <meta name="theme-color" content="#1877f2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #1877f2;
+            --blue-dark: #0f5fd1;
+            --blue-light: #e7f3ff;
+            --red: #e53935;
+            --green: #10b981;
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --border: #e0e3e8;
+            --text: #050505;
+            --muted: #65676b;
+            --radius: 16px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.10);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background:
+                radial-gradient(ellipse at 10% 10%, rgba(24,119,242,0.10) 0%, transparent 50%),
+                radial-gradient(ellipse at 90% 90%, rgba(16,185,129,0.07) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 400px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-logo {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .login-logo .icon { font-size: 40px; margin-bottom: 8px; }
+        .login-logo h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--blue);
+            letter-spacing: -0.5px;
+        }
+        .login-logo p {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .input-wrap {
+            position: relative;
+        }
+        .input-wrap .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            pointer-events: none;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px 14px 12px 42px;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            font-family: inherit;
+            font-size: 14px;
+            color: var(--text);
+            background: #fafbfc;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+        }
+        .form-group input:focus {
+            border-color: var(--blue);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(24,119,242,0.12);
+        }
+
+        .toggle-pw {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--muted);
+            padding: 4px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            border: none;
+            background: var(--blue);
+            color: #fff;
+            font-family: inherit;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s, transform .1s, box-shadow .2s;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-login:hover { background: var(--blue-dark); box-shadow: 0 4px 16px rgba(24,119,242,.35); }
+        .btn-login:active { transform: scale(0.98); }
+        .btn-login:disabled { opacity: .6; cursor: not-allowed; }
+
+        .error-msg {
+            display: none;
+            background: #fdecea;
+            color: var(--red);
+            border: 1px solid #f5c6c6;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 14px;
+            text-align: center;
+            align-items: center;
+            gap: 6px;
+        }
+        .error-msg.show { display: flex; }
+
+        .divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 24px 0;
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 11.5px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .login-card { padding: 28px 20px; }
+        }
+
+        /* shake animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-8px); }
+            40% { transform: translateX(8px); }
+            60% { transform: translateX(-5px); }
+            80% { transform: translateX(5px); }
+        }
+        .shake { animation: shake 0.45s ease; }
+    </style>
+</head>
+<body>
+
+<div class="login-card" id="loginCard">
+    <div class="login-logo">
+        <div class="icon">🎯</div>
+        <h1>FokusPro</h1>
+        <p>Masuk untuk mengakses katalog Anda</p>
+    </div>
+
+    <div class="form-group">
+        <label>Username</label>
+        <div class="input-wrap">
+            <span class="input-icon">👤</span>
+            <input type="text" id="username" placeholder="Masukkan username" autocomplete="username" autofocus>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <div class="input-wrap">
+            <span class="input-icon">🔒</span>
+            <input type="password" id="password" placeholder="Masukkan password" autocomplete="current-password"
+                   onkeydown="if(event.key==='Enter') doLogin()">
+            <button class="toggle-pw" type="button" onclick="togglePw()" id="togglePwBtn" title="Tampilkan password">👁</button>
+        </div>
+    </div>
+
+    <button class="btn-login" onclick="doLogin()" id="btnLogin">
+        🚀 Masuk
+    </button>
+
+    <div class="error-msg" id="errorMsg">
+        <span>⚠️</span><span id="errorTeks">Username atau password salah!</span>
+    </div>
+
+    <hr class="divider">
+    <p class="footer-note">🔐 Akses pribadi — hanya untuk Sabil</p>
+</div>
+
+<script>
+    const CORRECT_USER = 'sabil';
+    const CORRECT_PASS = '18april2003';
+    const SESSION_KEY  = 'fokuspro_auth';
+    const REDIRECT_KEY = 'fokuspro_redirect';
+
+    // Jika sudah login, redirect langsung
+    if (sessionStorage.getItem(SESSION_KEY) === 'ok') {
+        const dest = sessionStorage.getItem(REDIRECT_KEY) || 'index.html';
+        sessionStorage.removeItem(REDIRECT_KEY);
+        window.location.replace(dest);
+    }
+
+    function togglePw() {
+        const inp = document.getElementById('password');
+        const btn = document.getElementById('togglePwBtn');
+        if (inp.type === 'password') {
+            inp.type = 'text';
+            btn.textContent = '🙈';
+        } else {
+            inp.type = 'password';
+            btn.textContent = '👁';
+        }
+    }
+
+    function doLogin() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        const btn  = document.getElementById('btnLogin');
+        const err  = document.getElementById('errorMsg');
+        const card = document.getElementById('loginCard');
+
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Memeriksa...';
+
+        setTimeout(() => {
+            if (user.toLowerCase() === CORRECT_USER && pass === CORRECT_PASS) {
+                sessionStorage.setItem(SESSION_KEY, 'ok');
+                btn.innerHTML = '✅ Berhasil! Mengalihkan...';
+                btn.style.background = '#10b981';
+                const dest = sessionStorage.getItem(REDIRECT_KEY) || 'index.html';
+                sessionStorage.removeItem(REDIRECT_KEY);
+                setTimeout(() => window.location.replace(dest), 500);
+            } else {
+                err.classList.add('show');
+                document.getElementById('errorTeks').textContent =
+                    user.toLowerCase() !== CORRECT_USER
+                        ? 'Username tidak ditemukan!'
+                        : 'Password salah!';
+                card.classList.add('shake');
+                setTimeout(() => card.classList.remove('shake'), 450);
+                document.getElementById('password').value = '';
+                btn.disabled = false;
+                btn.innerHTML = '🚀 Masuk';
+            }
+        }, 600);
+    }
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+}
+</script>
+</body>
+</html>

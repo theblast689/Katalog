@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="id">
+<head><script>
+(function(){
+    const SESSION_KEY="fokuspro_auth";
+    const REDIRECT_KEY="fokuspro_redirect";
+    if(sessionStorage.getItem(SESSION_KEY)!=="ok"){
+        sessionStorage.setItem(REDIRECT_KEY, window.location.pathname.split("/").pop()||"index.html");
+        window.location.replace("login.html");
+    }
+})();
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <title>Video Course | FokusPro</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="./icon-192.png">
+    <meta name="theme-color" content="#1877f2">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #1877f2;
+            --blue-dark: #0f5fd1;
+            --blue-light: #e7f3ff;
+            --red: #e53935;
+            --yellow: #f59e0b;
+            --green: #10b981;
+            --bg: #f0f2f5;
+            --surface: #ffffff;
+            --border: #e0e3e8;
+            --text: #050505;
+            --muted: #65676b;
+            --radius: 14px;
+            --radius-sm: 8px;
+            --shadow: 0 2px 12px rgba(0,0,0,0.07);
+            --shadow-hover: 0 8px 24px rgba(0,0,0,0.13);
+            /* Subject colors */
+            --mat: #1877f2; --mat-bg: #e7f3ff;
+            --fis: #7c3aed; --fis-bg: #ede9fe;
+            --kim: #059669; --kim-bg: #d1fae5;
+            --bio: #d97706; --bio-bg: #fef3c7;
+            --bhs: #e53935; --bhs-bg: #fdecea;
+            --cod: #4f46e5; --cod-bg: #e0e7ff;
+            --lain: #6b7280; --lain-bg: #f3f4f6;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* ── TOPBAR ── */
+        .topbar { background: var(--surface); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 0 20px; }
+        .topbar-inner { max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 58px; gap: 16px; }
+        .logo { font-weight: 800; font-size: 16px; color: var(--blue); white-space: nowrap; }
+        .nav-links { display: flex; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+        .nav-link { padding: 6px 14px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: 600; transition: opacity .2s; }
+        .nav-link:hover { opacity: .8; }
+
+        /* ── BOTTOM NAV (mobile) ── */
+        .bottom-nav {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            z-index: 200;
+            padding: 0 0 env(safe-area-inset-bottom);
+        }
+        .bottom-nav-inner { display: flex; justify-content: space-around; height: 56px; }
+        .bnav-item {
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-decoration: none; font-size: 9px; font-weight: 700;
+            color: var(--muted); gap: 2px; transition: color .15s;
+        }
+        .bnav-item.active { color: var(--blue); }
+        .bnav-item span:first-child { font-size: 18px; line-height: 1; }
+
+        /* ── MAIN ── */
+        .main { max-width: 1200px; margin: 0 auto; padding: 28px 20px 80px; }
+
+        /* ── HERO ── */
+        .hero { margin-bottom: 26px; }
+        .hero-title { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 4px; }
+        .hero-sub { font-size: 13px; color: var(--muted); font-weight: 500; }
+        .stats-row { display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+        .stat-pill {
+            display: flex; align-items: center; gap: 7px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 30px; padding: 7px 16px;
+            font-size: 13px; font-weight: 700; color: var(--text);
+            box-shadow: var(--shadow);
+        }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+        /* ── SUBJECT FILTER ── */
+        .subject-bar {
+            display: flex; gap: 10px; flex-wrap: wrap;
+            margin-bottom: 22px; align-items: center;
+        }
+        .subj-btn {
+            display: flex; align-items: center; gap: 7px;
+            padding: 8px 18px; border-radius: 30px;
+            border: 2px solid var(--border); background: var(--surface);
+            font-family: inherit; font-size: 13px; font-weight: 700;
+            cursor: pointer; transition: all .18s; color: var(--muted);
+        }
+        .subj-btn .subj-icon { font-size: 16px; }
+        .subj-btn:hover { border-color: currentColor; }
+        .subj-btn.aktif { color: #fff; border-color: transparent; }
+        .subj-btn[data-s="Semua"].aktif     { background: var(--text); color: #fff; }
+        .subj-btn[data-s="Matematika"].aktif { background: var(--mat); }
+        .subj-btn[data-s="Fisika"].aktif     { background: var(--fis); }
+        .subj-btn[data-s="Kimia"].aktif      { background: var(--kim); }
+        .subj-btn[data-s="Biologi"].aktif    { background: var(--bio); }
+        .subj-btn[data-s="Bahasa"].aktif     { background: var(--bhs); }
+        .subj-btn[data-s="Coding"].aktif     { background: var(--cod); }
+        .subj-btn[data-s="Lainnya"].aktif    { background: var(--lain); }
+
+        /* ── PANEL ── */
+        .panel { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); padding: 22px 24px; margin-bottom: 20px; box-shadow: var(--shadow); }
+        .panel-title { font-size: 15px; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .panel-toggle { cursor: pointer; user-select: none; }
+        .panel-toggle::after { content: ' ▾'; font-size: 12px; }
+        .panel-toggle.tutup::after { content: ' ▸'; }
+        .panel-body { }
+        .panel-body.disembunyikan { display: none; }
+
+        /* ── FORM ── */
+        input[type="text"], input[type="url"], textarea, select {
+            width: 100%; padding: 11px 14px; border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm); font-family: inherit; font-size: 14px;
+            color: var(--text); background: #fafbfc; transition: border-color .2s, box-shadow .2s; outline: none;
+        }
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--blue); background: #fff; box-shadow: 0 0 0 3px rgba(24,119,242,0.1);
+        }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+        .form-row.triple { grid-template-columns: 2fr 1fr 1fr; }
+        @media (max-width: 640px) { .form-row, .form-row.triple { grid-template-columns: 1fr; } }
+        .form-label { font-size: 11px; font-weight: 700; color: var(--muted); margin-bottom: 5px; display: block; text-transform: uppercase; letter-spacing: .5px; }
+        .form-group { display: flex; flex-direction: column; }
+
+        .btn { padding: 10px 20px; border-radius: var(--radius-sm); border: none; font-family: inherit; font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s, transform .1s, box-shadow .2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--blue); color: #fff; }
+        .btn-primary:hover { background: var(--blue-dark); box-shadow: 0 4px 14px rgba(24,119,242,0.35); }
+        .btn-secondary { background: #e4e6eb; color: var(--text); }
+        .btn-secondary:hover { background: #d8dadf; }
+
+        /* Subject select colors */
+        .subject-select { cursor: pointer; }
+
+        /* ── SEARCH BAR ── */
+        .search-sort-bar { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+        .search-wrap { position: relative; flex: 1; }
+        .search-wrap input { padding-left: 42px; border-radius: 30px; }
+        .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+        .sort-select { width: 160px; flex-shrink: 0; border-radius: 30px; }
+
+        /* ── GRID ── */
+        .course-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; margin-bottom: 32px; }
+
+        /* ── KARTU COURSE ── */
+        .kartu {
+            background: var(--surface); border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: var(--shadow);
+            display: flex; flex-direction: column; position: relative;
+            transition: transform .2s, box-shadow .2s; overflow: hidden;
+            cursor: pointer;
+        }
+        .kartu:hover { transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+        .kartu-thumb {
+            position: relative; height: 175px; background: #1a1a2e;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .kartu-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
+        .kartu:hover .kartu-thumb img { transform: scale(1.05); }
+        .kartu-thumb .thumb-overlay {
+            position: absolute; inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%);
+            display: flex; align-items: center; justify-content: center;
+        }
+        .play-circle {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: rgba(255,255,255,0.95); display: flex;
+            align-items: center; justify-content: center; font-size: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            opacity: 0; transform: scale(0.8); transition: all .2s;
+        }
+        .kartu:hover .play-circle { opacity: 1; transform: scale(1); }
+        .durasi-badge {
+            position: absolute; bottom: 8px; right: 10px;
+            background: rgba(0,0,0,0.82); color: #fff;
+            padding: 2px 8px; border-radius: 5px; font-size: 11px; font-weight: 700;
+        }
+        .status-badge {
+            position: absolute; top: 8px; left: 8px;
+            padding: 3px 9px; border-radius: 5px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+        }
+        .selesai-badge { background: var(--green); color: #fff; }
+        .proses-badge  { background: var(--yellow); color: #fff; }
+
+        .hapus-btn {
+            position: absolute; top: 8px; right: 8px; z-index: 5;
+            width: 28px; height: 28px; border-radius: 50%;
+            background: rgba(229,57,53,0.85); color: #fff;
+            border: none; cursor: pointer; font-size: 12px;
+            display: flex; align-items: center; justify-content: center;
+            transition: background .2s, transform .15s; opacity: 0;
+        }
+        .kartu:hover .hapus-btn { opacity: 1; }
+        .hapus-btn:hover { background: var(--red); transform: scale(1.1); }
+
+        .kartu-body { padding: 14px 16px 16px; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .subj-tag {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;
+        }
+        .kartu-judul { font-size: 14px; font-weight: 700; line-height: 1.4; color: var(--text); flex: 1; }
+        .kartu-channel { font-size: 12px; color: var(--muted); font-weight: 500; }
+        .progress-bar-wrap { background: #f0f2f5; border-radius: 10px; height: 4px; overflow: hidden; }
+        .progress-bar-fill { height: 100%; border-radius: 10px; transition: width .4s ease; background: var(--green); }
+
+        /* ── EMPTY STATE ── */
+        .empty-state { grid-column: 1/-1; text-align: center; padding: 60px 20px; color: var(--muted); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 14px; }
+        .empty-state p { font-size: 15px; font-weight: 700; }
+        .empty-state span { font-size: 13px; }
+
+        /* ── SKELETON ── */
+        .skeleton { background: linear-gradient(90deg, #f0f2f5 25%, #e0e3e8 50%, #f0f2f5 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 8px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+        /* ── PAGINASI ── */
+        .paginasi { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin-bottom: 40px; }
+        .page-btn { background: var(--surface); border: 1.5px solid var(--border); color: var(--text); padding: 7px 13px; border-radius: var(--radius-sm); cursor: pointer; font-family: inherit; font-size: 13px; font-weight: 600; transition: background .15s, border-color .15s; }
+        .page-btn:hover:not(:disabled) { border-color: var(--blue); color: var(--blue); }
+        .page-btn.aktif { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .page-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+        /* ── TOAST ── */
+        #toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+        .toast { background: #1c1c1e; color: #fff; padding: 12px 18px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,0.25); animation: slideIn .3s ease; display: flex; align-items: center; gap: 8px; max-width: 320px; }
+        .toast.success { border-left: 4px solid var(--green); }
+        .toast.error   { border-left: 4px solid var(--red); }
+        .toast.info    { border-left: 4px solid var(--blue); }
+        @keyframes slideIn { from { transform: translateX(30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeOut { to { opacity: 0; transform: translateX(30px); } }
+
+        /* ── LOADING OVERLAY ── */
+        #loading-overlay { position: fixed; inset: 0; background: rgba(240,242,245,0.92); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 999; gap: 12px; font-weight: 700; color: var(--blue); }
+        .spinner { width: 36px; height: 36px; border: 3px solid var(--blue-light); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ════════════════════════════════════
+           ── CINEMA MODE (DISTRACTION FREE) ──
+           ════════════════════════════════════ */
+        .cinema-overlay {
+            position: fixed; inset: 0; z-index: 500;
+            background: #05050a;
+            display: flex; flex-direction: column;
+            opacity: 0; pointer-events: none;
+            transition: opacity .3s ease;
+        }
+        .cinema-overlay.aktif { opacity: 1; pointer-events: all; }
+
+        .cinema-topbar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 20px; flex-shrink: 0;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .cinema-logo { font-size: 13px; font-weight: 800; color: rgba(255,255,255,0.3); letter-spacing: 1px; text-transform: uppercase; }
+        .cinema-timer-wrap { display: flex; align-items: center; gap: 10px; }
+        .cinema-timer {
+            font-size: 18px; font-weight: 800;
+            color: rgba(255,255,255,0.7); font-variant-numeric: tabular-nums; letter-spacing: 2px;
+        }
+        .timer-btn {
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7); border-radius: 6px; padding: 5px 12px;
+            font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit;
+            transition: background .15s;
+        }
+        .timer-btn:hover { background: rgba(255,255,255,0.15); }
+        .cinema-close {
+            background: rgba(229,57,53,0.15); border: 1px solid rgba(229,57,53,0.25);
+            color: #e53935; border-radius: 8px; padding: 7px 16px;
+            font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit;
+            transition: background .15s; display: flex; align-items: center; gap: 6px;
+        }
+        .cinema-close:hover { background: rgba(229,57,53,0.3); }
+
+        .cinema-body {
+            flex: 1; display: flex; overflow: hidden;
+        }
+
+        /* Video area */
+        .cinema-video-area {
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            background: #000; position: relative; overflow: hidden;
+        }
+        .cinema-aspect {
+            width: 100%; max-width: 100%;
+            position: relative; padding-bottom: 56.25%;
+        }
+        .cinema-iframe {
+            position: absolute; inset: 0; width: 100%; height: 100%;
+            border: none; display: block;
+        }
+        /* Cover YouTube logo (bottom-left watermark area) */
+        .yt-cover-bl {
+            position: absolute; bottom: 0; left: 0;
+            width: 120px; height: 38px; pointer-events: none; z-index: 5;
+            background: linear-gradient(135deg, rgba(0,0,0,0.9) 40%, transparent 100%);
+        }
+        /* Cover YouTube logo top-left (yt branding appears there too) */
+        .yt-cover-tl {
+            position: absolute; top: 0; left: 0;
+            width: 80px; height: 40px; pointer-events: none; z-index: 5;
+            background: linear-gradient(135deg, rgba(0,0,0,0.7) 30%, transparent 100%);
+        }
+        /* End screen recommendation blocker */
+        .yt-end-block {
+            position: absolute; inset: 0; pointer-events: none; z-index: 4;
+            display: none;
+            background: rgba(5,5,10,0.97);
+            align-items: center; justify-content: center;
+            flex-direction: column; gap: 16px;
+        }
+        .yt-end-block.aktif { display: flex; }
+        .yt-end-msg { color: rgba(255,255,255,0.85); font-size: 18px; font-weight: 800; text-align: center; }
+        .yt-end-sub { color: rgba(255,255,255,0.45); font-size: 13px; }
+        .yt-end-actions { display: flex; gap: 10px; pointer-events: all; }
+        .yt-end-btn {
+            padding: 10px 22px; border-radius: 8px; cursor: pointer;
+            font-family: inherit; font-size: 14px; font-weight: 700; border: none;
+            transition: background .15s;
+        }
+        .yt-end-btn.primary { background: var(--blue); color: #fff; }
+        .yt-end-btn.secondary { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.15); }
+
+        /* Info panel */
+        .cinema-panel {
+            width: 320px; flex-shrink: 0; overflow-y: auto;
+            background: #0d0d14;
+            border-left: 1px solid rgba(255,255,255,0.06);
+            display: flex; flex-direction: column;
+            padding: 24px; gap: 20px;
+        }
+        .cinema-panel::-webkit-scrollbar { width: 4px; }
+        .cinema-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
+        .cp-subject { display: inline-flex; align-items: center; gap: 5px; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; }
+        .cp-title { font-size: 16px; font-weight: 800; color: rgba(255,255,255,0.9); line-height: 1.4; }
+        .cp-channel { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 500; }
+
+        .cp-section-title { font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+
+        /* Progress in panel */
+        .cp-progress-wrap input {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.8); border-radius: 8px;
+            padding: 9px 12px; font-size: 13px;
+        }
+        .cp-progress-wrap input:focus { border-color: var(--blue); background: rgba(24,119,242,0.1); box-shadow: none; }
+
+        /* Notes in panel */
+        .cp-notes-wrap textarea {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(245,158,11,0.2);
+            color: rgba(255,255,255,0.8); border-radius: 8px;
+            padding: 10px 12px; font-size: 13px; resize: vertical; min-height: 100px;
+            line-height: 1.6;
+        }
+        .cp-notes-wrap textarea:focus { border-color: var(--yellow); background: rgba(245,158,11,0.05); box-shadow: none; }
+        .cp-notes-wrap textarea::placeholder { color: rgba(255,255,255,0.25); }
+
+        /* Selesai checkbox */
+        .cp-selesai-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 13px; font-weight: 700; color: rgba(255,255,255,0.6);
+            cursor: pointer;
+        }
+        .cp-selesai-label input[type="checkbox"] { accent-color: var(--green); width: 15px; height: 15px; cursor: pointer; }
+
+        .cp-save-btn {
+            width: 100%; background: var(--blue); color: #fff; border: none;
+            border-radius: 8px; padding: 11px; font-family: inherit;
+            font-size: 14px; font-weight: 700; cursor: pointer; transition: background .2s;
+        }
+        .cp-save-btn:hover { background: var(--blue-dark); }
+
+        .cp-open-btn {
+            width: 100%; background: rgba(255,255,255,0.06); color: rgba(255,255,255,0.7);
+            border: 1px solid rgba(255,255,255,0.1); border-radius: 8px; padding: 10px;
+            font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer;
+            transition: background .2s; text-decoration: none; text-align: center; display: block;
+        }
+        .cp-open-btn:hover { background: rgba(255,255,255,0.12); }
+
+        .cp-shortcuts { color: rgba(255,255,255,0.2); font-size: 11px; font-weight: 500; line-height: 1.8; }
+        .cp-shortcuts span { display: inline-block; background: rgba(255,255,255,0.07); padding: 1px 6px; border-radius: 4px; margin-right: 4px; font-weight: 700; }
+
+        /* Mobile cinema */
+        @media (max-width: 768px) {
+            .cinema-body { flex-direction: column; }
+            .cinema-panel { width: 100%; border-left: none; border-top: 1px solid rgba(255,255,255,0.06); max-height: 45vh; }
+            .cinema-video-area { flex: none; height: auto; }
+            .cinema-aspect { padding-bottom: 56.25%; }
+        }
+
+        /* ── TIPE BADGE ── */
+        .tipe-badge {
+            position: absolute; top: 8px; right: 40px;
+            background: rgba(0,0,0,0.7); color: rgba(255,255,255,0.8);
+            padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 700;
+        }
+
+        /* ── HELPER ── */
+        .divider { height: 1px; background: rgba(255,255,255,0.07); margin: 0 -24px; }
+
+        /* ── MOBILE ── */
+        @media (max-width: 640px) {
+            .nav-links { display: none; }
+            .bottom-nav { display: block; }
+            .main { padding: 16px 12px 80px; }
+            .topbar { padding: 0 14px; }
+            .topbar-inner { height: 50px; }
+            .course-grid { grid-template-columns: 1fr; gap: 14px; }
+            .subject-bar { gap: 6px; }
+            .subj-btn { padding: 6px 12px; font-size: 12px; }
+            .hero-title { font-size: 18px; }
+            .search-sort-bar { flex-direction: column; gap: 8px; }
+            .sort-select { width: 100%; }
+            #toast-container { bottom: 68px; right: 12px; left: 12px; }
+        }
+    
+        /* ── TIME TRACKER WIDGET ── */
+        .waktu-wrap { position: relative; flex-shrink: 0; }
+        .waktu-hari-ini {
+            display: flex; align-items: center; gap: 7px;
+            background: rgba(24,119,242,0.10);
+            border: 1.5px solid rgba(24,119,242,0.25);
+            border-radius: 20px; padding: 5px 13px;
+            font-size: 12px; font-weight: 700; color: #1877f2;
+            white-space: nowrap; cursor: default; user-select: none; flex-shrink: 0;
+            transition: background .3s, color .3s, border-color .3s;
+        }
+        .waktu-hari-ini .dot-live {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #10b981;
+            animation: blink-dot 1.4s ease-in-out infinite; flex-shrink: 0;
+        }
+        .waktu-hari-ini.paused .dot-live { background: #f59e0b; animation: none; }
+        @keyframes blink-dot { 0%,100%{opacity:1}50%{opacity:.3} }
+        .waktu-tooltip {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: #1c1c1e; color: #fff; font-size: 11px; font-weight: 600;
+            padding: 8px 12px; border-radius: 10px; white-space: nowrap;
+            box-shadow: 0 4px 16px rgba(0,0,0,.25); z-index: 9999;
+        }
+        .waktu-tooltip::before {
+            content:''; position:absolute; top:-5px; right:16px;
+            border-left:5px solid transparent; border-right:5px solid transparent;
+            border-bottom:5px solid #1c1c1e;
+        }
+        .waktu-wrap:hover .waktu-tooltip { display: block; }
+        </style>
+</head>
+<body>
+
+<div id="loading-overlay"><div class="spinner"></div><span>Memuat kursus...</span></div>
+<div id="toast-container"></div>
+
+<!-- ══ TOPBAR ══ -->
+<header class="topbar">
+    <div class="topbar-inner">
+        <span class="logo">🎓 FokusPro</span>
+        <div class="waktu-wrap">
+            <div class="waktu-hari-ini" id="waktuWidget">
+                <span class="dot-live"></span>
+                <span id="waktuTeks">00:00</span>
+            </div>
+            <div class="waktu-tooltip">
+                ⏱ Waktu di halaman ini hari ini<br>
+                <span id="waktuTooltipDetail" style="color:#aaa;font-weight:500;">Memuat...</span>
+            </div>
+        </div>
+        <nav class="nav-links">
+            <a href="index.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🎥 Video</a>
+            <a href="course.html" class="nav-link active" style="background:var(--blue,#1877f2);color:#fff;">📚 Course</a>
+            <a href="habit.html" class="nav-link" style="background:#e4e6eb;color:#050505;">✅ Habit</a>
+            <a href="web.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🌐 Web</a>
+            <a href="indonesia.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🇮🇩 Indo</a>
+            <a href="jepang.html" class="nav-link" style="background:#e4e6eb;color:#050505;">🇯🇵 Jepang</a>
+            <a href="timer-dashboard.html" class="nav-link" style="background:#e4e6eb;color:#050505;">⏱ Timer</a>
+        </nav>
+    </div>
+</header>
+
+<!-- ══ CINEMA MODE ══ -->
+<div class="cinema-overlay" id="cinemaOverlay">
+    <div class="cinema-topbar">
+        <span class="cinema-logo">🎓 FokusPro — Mode Belajar</span>
+        <div class="cinema-timer-wrap">
+            <div class="cinema-timer" id="cinemaTimer">00:00:00</div>
+            <button class="timer-btn" id="timerToggle" onclick="toggleTimer()">▶ Mulai</button>
+            <button class="timer-btn" onclick="resetTimer()">↺ Reset</button>
+        </div>
+        <button class="cinema-close" onclick="tutupCinema()">✕ Tutup <small style="opacity:.6;font-size:10px">[ESC]</small></button>
+    </div>
+    <div class="cinema-body">
+        <!-- Video -->
+        <div class="cinema-video-area">
+            <div class="cinema-aspect" id="cinemaAspect">
+                <iframe class="cinema-iframe" id="cinemaFrame"
+                    src="about:blank"
+                    allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                    allowfullscreen></iframe>
+                <!-- Cover YouTube watermarks -->
+                <div class="yt-cover-bl" id="ytCoverBL"></div>
+                <div class="yt-cover-tl" id="ytCoverTL"></div>
+                <!-- End screen blocker -->
+                <div class="yt-end-block" id="ytEndBlock">
+                    <div class="yt-end-msg">✅ Video Selesai!</div>
+                    <div class="yt-end-sub">Rekomendasi YouTube disembunyikan untuk fokus belajar</div>
+                    <div class="yt-end-actions">
+                        <button class="yt-end-btn primary" onclick="ulangVideo()">↺ Ulangi</button>
+                        <button class="yt-end-btn secondary" onclick="tutupCinema()">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Info Panel -->
+        <div class="cinema-panel">
+            <div>
+                <span class="cp-subject" id="cpSubject"></span>
+                <p class="cp-title" id="cpTitle" style="margin-top:10px;"></p>
+                <p class="cp-channel" id="cpChannel" style="margin-top:5px;"></p>
+            </div>
+            <div class="divider"></div>
+            <div class="cp-progress-wrap">
+                <p class="cp-section-title">⏱ Progress Menonton</p>
+                <input type="text" id="cpLastWatch" placeholder="Cth: 24:30">
+            </div>
+            <div class="cp-notes-wrap">
+                <p class="cp-section-title">📝 Catatan</p>
+                <textarea id="cpCatatan" placeholder="Tulis catatan belajarmu di sini..."></textarea>
+            </div>
+            <label class="cp-selesai-label">
+                <input type="checkbox" id="cpSelesai"> Tandai sudah selesai
+            </label>
+            <div class="divider"></div>
+            <button class="cp-save-btn" onclick="simpanProgressCinema()">💾 Simpan Progress</button>
+            <a class="cp-open-btn" id="cpOpenLink" href="#" target="_blank" rel="noopener">↗ Buka di Tab Baru</a>
+            <div class="divider"></div>
+            <p class="cp-shortcuts"><span>ESC</span> Tutup &nbsp; <span>F</span> Fullscreen iframe</p>
+        </div>
+    </div>
+</div>
+
+<!-- ══ MAIN ══ -->
+<main class="main">
+
+    <!-- Hero -->
+    <div class="hero">
+        <h1 class="hero-title">📚 Video Course Saya</h1>
+        <p class="hero-sub">Belajar tanpa distraksi — tanpa rekomendasi, tanpa iklan.</p>
+        <div class="stats-row" id="statsRow">
+            <div class="stat-pill"><div class="stat-dot" style="background:#1877f2"></div><span id="statTotal">0</span> Total</div>
+            <div class="stat-pill"><div class="stat-dot" style="background:#10b981"></div><span id="statSelesai">0</span> Selesai</div>
+            <div class="stat-pill"><div class="stat-dot" style="background:#f59e0b"></div><span id="statProses">0</span> Sedang Dipelajari</div>
+        </div>
+    </div>
+
+    <!-- Subject Filter -->
+    <div class="subject-bar" id="subjectBar">
+        <button class="subj-btn aktif" data-s="Semua" onclick="filterSubjek('Semua')"><span class="subj-icon">🌐</span>Semua</button>
+        <button class="subj-btn" data-s="Matematika" onclick="filterSubjek('Matematika')"><span class="subj-icon">📐</span>Matematika</button>
+        <button class="subj-btn" data-s="Fisika"     onclick="filterSubjek('Fisika')"    ><span class="subj-icon">⚡</span>Fisika</button>
+        <button class="subj-btn" data-s="Kimia"      onclick="filterSubjek('Kimia')"     ><span class="subj-icon">🧪</span>Kimia</button>
+        <button class="subj-btn" data-s="Biologi"    onclick="filterSubjek('Biologi')"   ><span class="subj-icon">🧬</span>Biologi</button>
+        <button class="subj-btn" data-s="Bahasa"     onclick="filterSubjek('Bahasa')"    ><span class="subj-icon">📖</span>Bahasa</button>
+        <button class="subj-btn" data-s="Coding"     onclick="filterSubjek('Coding')"    ><span class="subj-icon">💻</span>Coding</button>
+        <button class="subj-btn" data-s="Lainnya"    onclick="filterSubjek('Lainnya')"   ><span class="subj-icon">📂</span>Lainnya</button>
+    </div>
+
+    <!-- Add Video Panel -->
+    <div class="panel">
+        <p class="panel-title panel-toggle" id="addToggleTitle" onclick="toggleAddPanel()">➕ Tambah Video Course</p>
+        <div class="panel-body" id="addPanelBody">
+            <div class="form-row triple">
+                <div class="form-group">
+                    <label class="form-label">Link Video / URL Embed</label>
+                    <input type="url" id="linkInput" placeholder="https://youtube.com/watch?v=... atau link video lain" oninput="detectSource()">
+                    <small id="sourceDetected" style="font-size:11px;font-weight:600;margin-top:4px;color:var(--muted)"></small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Judul Video</label>
+                    <input type="text" id="judulInput" placeholder="Judul otomatis dari YouTube...">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Durasi</label>
+                    <input type="text" id="durasiInput" placeholder="--:-- (auto-detect)">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Mata Pelajaran</label>
+                    <select id="subjekInput" class="subject-select">
+                        <option value="Matematika">📐 Matematika</option>
+                        <option value="Fisika">⚡ Fisika</option>
+                        <option value="Kimia">🧪 Kimia</option>
+                        <option value="Biologi">🧬 Biologi</option>
+                        <option value="Bahasa">📖 Bahasa</option>
+                        <option value="Coding">💻 Coding</option>
+                        <option value="Lainnya">📂 Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Channel / Sumber</label>
+                    <input type="text" id="channelInput" placeholder="Nama channel atau website...">
+                </div>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+                <button class="btn btn-primary" id="simpanBtn" onclick="simpanCourse()">💾 Simpan Course</button>
+                <button class="btn btn-secondary" onclick="resetForm()">✕ Reset</button>
+            </div>
+            <p style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.6;">
+                💡 Mendukung: YouTube, Vimeo, atau link embed dari website manapun.<br>
+                Untuk YouTube, rekomendasi & logo YouTube dikurangi secara otomatis saat ditonton.
+            </p>
+        </div>
+    </div>
+
+    <!-- Search + Sort -->
+    <div class="search-sort-bar">
+        <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Cari judul, channel, atau mata pelajaran..." oninput="renderCourses()">
+        </div>
+        <select class="sort-select" id="sortSelect" onchange="renderCourses()">
+            <option value="terbaru">Terbaru</option>
+            <option value="terlama">Terlama</option>
+            <option value="az">A → Z</option>
+            <option value="belum">Belum Selesai</option>
+            <option value="selesai">Sudah Selesai</option>
+        </select>
+    </div>
+
+    <!-- Course Grid -->
+    <div class="course-grid" id="courseGrid"></div>
+    <div class="paginasi" id="paginasiContainer"></div>
+
+</main>
+
+<!-- YouTube IFrame API (for auto-duration detection) -->
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+// ══ YOUTUBE API (duration detect) ══
+let _ytReady = false; const _ytQ = [];
+window.onYouTubeIframeAPIReady = () => { _ytReady = true; _ytQ.forEach(f=>f()); _ytQ.length=0; };
+
+function getYTDuration(ytId) {
+    return new Promise(resolve => {
+        const run = () => {
+            const wrap = document.createElement('div');
+            wrap.style.cssText='position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+            document.body.appendChild(wrap);
+            let done=false;
+            const settle=(v)=>{ if(done)return; done=true; try{p.destroy();}catch(e){} wrap.remove(); resolve(v); };
+            let p;
+            try {
+                p = new YT.Player(wrap, { videoId:ytId, playerVars:{autoplay:0,mute:1},
+                    events:{
+                        onReady:(e)=>{
+                            const d=e.target.getDuration();
+                            if(d&&isFinite(d)&&d>0){
+                                const h=Math.floor(d/3600), m=Math.floor((d%3600)/60), s=Math.floor(d%60);
+                                settle(h>0?`${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`:`${m}:${String(s).padStart(2,'0')}`);
+                            } else settle(null);
+                        }, onError:()=>settle(null)
+                    }
+                });
+            } catch(e){settle(null);}
+            setTimeout(()=>settle(null),12000);
+        };
+        if(_ytReady) run(); else _ytQ.push(run);
+    });
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getDatabase, ref, push, onValue, remove, update, set, get} from "https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js";
+
+// ── FIREBASE SETUP (same config as index.html) ──
+const firebaseConfig = {
+    apiKey: "AIzaSyBCHrlq5VIizVn42KzyvmUYH3OUs2G74rQ",
+    authDomain: "katalog-video.firebaseapp.com",
+    databaseURL: "https://katalog-video-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "katalog-video",
+    storageBucket: "katalog-video.firebasestorage.app",
+    messagingSenderId: "1035864136490",
+    appId: "1:1035864136490:web:9abe5dbf41e80b11ad5c53"
+};
+const app = initializeApp(firebaseConfig);
+const db  = getDatabase(app);
+
+// ── Expose Firebase db & functions for timer sync ──
+window._fbTimerDb = db;
+window._fbRTDB = { ref, set, get, remove };
+
+
+let dataCourse = {};
+let filterAktif = 'Semua';
+let halamanSaatIni = 1;
+const itemPerHalaman = 12;
+let cinemaId = null; // ID course yang sedang dibuka di cinema
+let _currentUrl = ''; // for re-play
+
+// ── SUBJECT CONFIG ──
+const subjekConfig = {
+    'Matematika': { color:'#1877f2', bg:'#e7f3ff', icon:'📐' },
+    'Fisika':     { color:'#7c3aed', bg:'#ede9fe', icon:'⚡' },
+    'Kimia':      { color:'#059669', bg:'#d1fae5', icon:'🧪' },
+    'Biologi':    { color:'#d97706', bg:'#fef3c7', icon:'🧬' },
+    'Bahasa':     { color:'#e53935', bg:'#fdecea', icon:'📖' },
+    'Coding':     { color:'#4f46e5', bg:'#e0e7ff', icon:'💻' },
+    'Lainnya':    { color:'#6b7280', bg:'#f3f4f6', icon:'📂' },
+};
+function getSubjek(s) { return subjekConfig[s] || subjekConfig['Lainnya']; }
+
+// ── TOAST ──
+function toast(msg, type='info') {
+    const icons = { success:'✅', error:'❌', info:'ℹ️' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span>${icons[type]}</span><span>${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(()=>{ el.style.animation='fadeOut .3s ease forwards'; setTimeout(()=>el.remove(),300); }, 3000);
+}
+
+// ── SOURCE DETECTION ──
+function getVideoType(url) {
+    if (/youtube\.com|youtu\.be/.test(url)) return 'youtube';
+    if (/vimeo\.com/.test(url)) return 'vimeo';
+    return 'external';
+}
+
+function getEmbedUrl(url, autoplay=false) {
+    const tipe = getVideoType(url);
+    const ap = autoplay ? 1 : 0;
+    if (tipe === 'youtube') {
+        const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/|embed\/)|youtu\.be\/)([^#&?]+)/);
+        if (m) return `https://www.youtube.com/embed/${m[1]}?autoplay=${ap}&rel=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`;
+    }
+    if (tipe === 'vimeo') {
+        const m = url.match(/vimeo\.com\/(?:video\/)?(\d+)/);
+        if (m) return `https://player.vimeo.com/video/${m[1]}?autoplay=${ap}&title=0&byline=0&portrait=0`;
+    }
+    return url;
+}
+
+function getThumbnail(url) {
+    const tipe = getVideoType(url);
+    if (tipe === 'youtube') {
+        const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/)|youtu\.be\/)([^#&?]+)/);
+        if (m) return `https://img.youtube.com/vi/${m[1]}/mqdefault.jpg`;
+    }
+    // Vimeo & others: generic
+    return `https://placehold.co/320x180/1a1a2e/ffffff?text=Video`;
+}
+
+// ── SOURCE DETECT UI ──
+window.detectSource = async () => {
+    const url = document.getElementById('linkInput').value.trim();
+    const label = document.getElementById('sourceDetected');
+    if (!url) { label.textContent=''; return; }
+
+    const tipe = getVideoType(url);
+    if (tipe === 'youtube') {
+        label.textContent = '🔴 YouTube terdeteksi — Rekomendasi & logo akan dikurangi otomatis';
+        label.style.color = '#e53935';
+        // Auto-fetch title
+        try {
+            const meta = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(url)}`).then(r=>r.json());
+            if (meta.title && !document.getElementById('judulInput').value) {
+                document.getElementById('judulInput').value = meta.title;
+            }
+            if (meta.author_name && !document.getElementById('channelInput').value) {
+                document.getElementById('channelInput').value = meta.author_name;
+            }
+        } catch(_) {}
+        // Auto-detect duration
+        const m = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|live\/)|youtu\.be\/)([^#&?]+)/);
+        if (m) {
+            document.getElementById('durasiInput').placeholder = 'Mendeteksi...';
+            const dur = await getYTDuration(m[1]);
+            document.getElementById('durasiInput').placeholder = dur ? dur : '--:--';
+            if (dur && !document.getElementById('durasiInput').value) document.getElementById('durasiInput').value = dur;
+        }
+    } else if (tipe === 'vimeo') {
+        label.textContent = '🔵 Vimeo terdeteksi';
+        label.style.color = '#1cb7eb';
+        try {
+            const meta = await fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent(url)}`).then(r=>r.json());
+            if (meta.title && !document.getElementById('judulInput').value) document.getElementById('judulInput').value = meta.title;
+            if (meta.author_name && !document.getElementById('channelInput').value) document.getElementById('channelInput').value = meta.author_name;
+        } catch(_) {}
+    } else {
+        label.textContent = '🌐 Link eksternal — akan di-embed langsung';
+        label.style.color = '#6b7280';
+    }
+};
+
+// ── ADD PANEL TOGGLE ──
+window.toggleAddPanel = () => {
+    const body = document.getElementById('addPanelBody');
+    const title = document.getElementById('addToggleTitle');
+    body.classList.toggle('disembunyikan');
+    title.classList.toggle('tutup');
+};
+
+window.resetForm = () => {
+    ['linkInput','judulInput','durasiInput','channelInput'].forEach(id => document.getElementById(id).value='');
+    document.getElementById('sourceDetected').textContent='';
+    document.getElementById('durasiInput').placeholder='--:-- (auto-detect)';
+};
+
+// ── SAVE COURSE ──
+window.simpanCourse = async () => {
+    const url    = document.getElementById('linkInput').value.trim();
+    const judul  = document.getElementById('judulInput').value.trim();
+    const durasi = document.getElementById('durasiInput').value.trim() || '--:--';
+    const subjek = document.getElementById('subjekInput').value;
+    const channel= document.getElementById('channelInput').value.trim() || 'Unknown';
+
+    if (!url) return toast('Link video wajib diisi!', 'error');
+
+    // Cek duplikat
+    if (Object.values(dataCourse).some(c=>c.url===url)) {
+        toast('Video ini sudah tersimpan!', 'error'); return;
+    }
+
+    const btn = document.getElementById('simpanBtn');
+    btn.disabled=true; btn.textContent='⏳ Menyimpan...';
+    try {
+        const finalJudul = judul || 'Tanpa Judul';
+        await push(ref(db,'courses'), {
+            url, judul: finalJudul, channel, subjek,
+            durasi, thumbnail: getThumbnail(url),
+            tipe: getVideoType(url),
+            lastWatch:'', selesai:false, catatan:'',
+            waktuSimpan: Date.now()
+        });
+        toast(`"${finalJudul}" berhasil disimpan!`, 'success');
+        resetForm();
+    } catch(e) {
+        toast('Gagal menyimpan. Cek koneksi!', 'error');
+    } finally {
+        btn.disabled=false; btn.textContent='💾 Simpan Course';
+    }
+};
+
+// ── FILTER ──
+window.filterSubjek = (s) => {
+    filterAktif=s; halamanSaatIni=1;
+    document.querySelectorAll('.subj-btn').forEach(b => {
+        b.classList.toggle('aktif', b.dataset.s===s);
+    });
+    renderCourses();
+};
+
+// ── RENDER COURSES ──
+window.renderCourses = () => {
+    const cari = document.getElementById('searchInput').value.toLowerCase();
+    const sort = document.getElementById('sortSelect').value;
+    let list = Object.entries(dataCourse).map(([id,v])=>({id,...v}));
+
+    if (filterAktif !== 'Semua') list = list.filter(c=>c.subjek===filterAktif);
+    if (cari) list = list.filter(c=>
+        c.judul?.toLowerCase().includes(cari)||
+        c.channel?.toLowerCase().includes(cari)||
+        c.subjek?.toLowerCase().includes(cari)
+    );
+    if (sort==='belum') list=list.filter(c=>!c.selesai);
+    if (sort==='selesai') list=list.filter(c=>c.selesai);
+    if (sort==='terbaru') list.sort((a,b)=>(b.waktuSimpan||0)-(a.waktuSimpan||0));
+    else if (sort==='terlama') list.sort((a,b)=>(a.waktuSimpan||0)-(b.waktuSimpan||0));
+    else if (sort==='az') list.sort((a,b)=>a.judul?.localeCompare(b.judul));
+
+    // Stats
+    const all = Object.values(dataCourse);
+    document.getElementById('statTotal').textContent  = all.length;
+    document.getElementById('statSelesai').textContent = all.filter(c=>c.selesai).length;
+    document.getElementById('statProses').textContent  = all.filter(c=>!c.selesai&&c.lastWatch).length;
+
+    const totalHal = Math.ceil(list.length/itemPerHalaman)||1;
+    if (halamanSaatIni>totalHal) halamanSaatIni=totalHal;
+    const ditampilkan = list.slice((halamanSaatIni-1)*itemPerHalaman, halamanSaatIni*itemPerHalaman);
+
+    const grid = document.getElementById('courseGrid');
+    if (ditampilkan.length===0) {
+        grid.innerHTML=`<div class="empty-state"><div class="icon">📚</div><p>Belum ada course di sini</p><span>Tambahkan video pertamamu di atas!</span></div>`;
+    } else {
+        grid.innerHTML = ditampilkan.map(c=>{
+            const cfg = getSubjek(c.subjek||'Lainnya');
+            const statusBadge = c.selesai
+                ? `<span class="status-badge selesai-badge">✓ Selesai</span>`
+                : c.lastWatch
+                ? `<span class="status-badge proses-badge">▶ Dipelajari</span>`
+                : '';
+            const tipeBadge = c.tipe!=='youtube'&&c.tipe
+                ? `<span class="tipe-badge">${c.tipe==='vimeo'?'VIMEO':'EXT'}</span>` : '';
+            const thumb = c.thumbnail || getThumbnail(c.url||'');
+            const progress = c.lastWatch ? '▶' : '';
+            return `
+            <div class="kartu" onclick="bukaCinema('${c.id}')">
+                <button class="hapus-btn" onclick="event.stopPropagation();hapusCourse('${c.id}')" title="Hapus">✕</button>
+                <div class="kartu-thumb">
+                    <img src="${thumb}" loading="lazy" onerror="this.src='https://placehold.co/320x180/1a1a2e/ffffff?text=Video'">
+                    <div class="thumb-overlay">
+                        <div class="play-circle">▶</div>
+                    </div>
+                    ${statusBadge}
+                    ${tipeBadge}
+                    <span class="durasi-badge">${c.durasi||'--:--'}</span>
+                </div>
+                <div class="kartu-body">
+                    <span class="subj-tag" style="background:${cfg.bg};color:${cfg.color}">${cfg.icon} ${c.subjek||'Lainnya'}</span>
+                    <p class="kartu-judul">${c.judul||'Tanpa Judul'}</p>
+                    <p class="kartu-channel">${c.channel||''}</p>
+                    ${c.lastWatch ? `<div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${estimasiProgress(c)}%"></div></div>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+    }
+    renderPaginasi(totalHal);
+};
+
+function estimasiProgress(c) {
+    if (!c.lastWatch||!c.durasi||c.selesai) return c.selesai?100:0;
+    const parse=(s)=>{ const p=s.split(':').map(Number); if(p.length===3)return p[0]*3600+p[1]*60+p[2]; return (p[0]||0)*60+(p[1]||0); };
+    try{ return Math.min(Math.round((parse(c.lastWatch)/parse(c.durasi))*100),99); }catch(e){ return 20; }
+}
+
+// ── PAGINASI ──
+window.gantiHalaman = (n)=>{ halamanSaatIni=n; renderCourses(); window.scrollTo({top:0,behavior:'smooth'}); };
+window.renderPaginasi = (total)=>{
+    const k=document.getElementById('paginasiContainer');
+    if(total<=1){k.innerHTML='';return;}
+    let html=`<button class="page-btn" onclick="gantiHalaman(${halamanSaatIni-1})" ${halamanSaatIni===1?'disabled':''}>‹ Prev</button>`;
+    for(let i=1;i<=total;i++){
+        if(i===1||i===total||(i>=halamanSaatIni-2&&i<=halamanSaatIni+2)){
+            html+=`<button class="page-btn ${i===halamanSaatIni?'aktif':''}" onclick="gantiHalaman(${i})">${i}</button>`;
+        }else if(i===halamanSaatIni-3||i===halamanSaatIni+3){
+            html+=`<span style="align-self:center;color:var(--muted)">…</span>`;
+        }
+    }
+    html+=`<button class="page-btn" onclick="gantiHalaman(${halamanSaatIni+1})" ${halamanSaatIni===total?'disabled':''}>Next ›</button>`;
+    k.innerHTML=html;
+};
+
+// ── HAPUS ──
+window.hapusCourse = (id)=>{
+    if(!confirm('Hapus course ini?'))return;
+    remove(ref(db,`courses/${id}`)).then(()=>toast('Course dihapus.','info'));
+};
+
+// ── CINEMA MODE ──
+window.bukaCinema = (id) => {
+    const c = dataCourse[id];
+    if (!c) return;
+    cinemaId = id;
+    _currentUrl = c.url;
+
+    const cfg = getSubjek(c.subjek||'Lainnya');
+    const overlay = document.getElementById('cinemaOverlay');
+
+    // Populate panel
+    const subEl = document.getElementById('cpSubject');
+    subEl.textContent = `${cfg.icon} ${c.subjek||'Lainnya'}`;
+    subEl.style.background = cfg.bg;
+    subEl.style.color = cfg.color;
+    document.getElementById('cpTitle').textContent   = c.judul || 'Tanpa Judul';
+    document.getElementById('cpChannel').textContent = c.channel || '';
+    document.getElementById('cpLastWatch').value     = c.lastWatch || '';
+    document.getElementById('cpCatatan').value       = c.catatan || '';
+    document.getElementById('cpSelesai').checked     = !!c.selesai;
+    document.getElementById('cpOpenLink').href       = c.url;
+
+    // Show/hide YouTube covers based on type
+    const isYT = c.tipe === 'youtube';
+    document.getElementById('ytCoverBL').style.display = isYT ? 'block' : 'none';
+    document.getElementById('ytCoverTL').style.display = isYT ? 'block' : 'none';
+    document.getElementById('ytEndBlock').classList.remove('aktif');
+
+    // Set iframe src (embed with anti-distraction params + autoplay)
+    document.getElementById('cinemaFrame').src = getEmbedUrl(c.url, true);
+
+    // Show overlay
+    overlay.classList.add('aktif');
+    document.body.style.overflow = 'hidden';
+};
+
+window.tutupCinema = () => {
+    document.getElementById('cinemaOverlay').classList.remove('aktif');
+    document.getElementById('cinemaFrame').src = 'about:blank';
+    document.getElementById('ytEndBlock').classList.remove('aktif');
+    document.body.style.overflow = '';
+    pauseTimer();
+    cinemaId = null;
+};
+
+window.ulangVideo = () => {
+    document.getElementById('ytEndBlock').classList.remove('aktif');
+    document.getElementById('cinemaFrame').src = getEmbedUrl(_currentUrl, true);
+};
+
+window.simpanProgressCinema = () => {
+    if (!cinemaId) return;
+    const lastWatch = document.getElementById('cpLastWatch').value;
+    const catatan   = document.getElementById('cpCatatan').value;
+    const selesai   = document.getElementById('cpSelesai').checked;
+    update(ref(db,`courses/${cinemaId}`), { lastWatch, catatan, selesai })
+        .then(()=>toast('Progress disimpan! ✅','success'))
+        .catch(()=>toast('Gagal menyimpan','error'));
+};
+
+// ── STUDY TIMER ──
+let timerSec = 0; let timerInterval = null; let timerRunning = false;
+window.toggleTimer = () => {
+    timerRunning ? pauseTimer() : startTimer();
+};
+function startTimer() {
+    timerRunning=true;
+    document.getElementById('timerToggle').textContent='⏸ Pause';
+    timerInterval=setInterval(()=>{
+        timerSec++;
+        const h=Math.floor(timerSec/3600), m=Math.floor((timerSec%3600)/60), s=timerSec%60;
+        document.getElementById('cinemaTimer').textContent=
+            `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    },1000);
+}
+function pauseTimer() {
+    timerRunning=false; clearInterval(timerInterval);
+    document.getElementById('timerToggle').textContent='▶ Mulai';
+}
+window.resetTimer = ()=>{ pauseTimer(); timerSec=0; document.getElementById('cinemaTimer').textContent='00:00:00'; };
+
+// ── ESC KEY ──
+document.addEventListener('keydown', e=>{
+    if (e.key==='Escape') tutupCinema();
+});
+
+// ── YOUTUBE END SCREEN BLOCKER (postMessage) ──
+window.addEventListener('message', e=>{
+    try {
+        const data = typeof e.data==='string' ? JSON.parse(e.data) : e.data;
+        // YouTube player state: 0 = ended
+        if (data?.event==='onStateChange' && data?.info===0) {
+            document.getElementById('ytEndBlock').classList.add('aktif');
+        }
+    } catch(_) {}
+});
+
+// ── FIREBASE DATA LOAD ──
+onValue(ref(db,'courses'), (snap)=>{
+    dataCourse = snap.val() || {};
+    renderCourses();
+    document.getElementById('loading-overlay').style.display='none';
+}, (err)=>{
+    // If no courses node yet, just show empty state
+    dataCourse = {};
+    renderCourses();
+    document.getElementById('loading-overlay').style.display='none';
+});
+
+</script>
+
+<nav class="bottom-nav">
+    <div class="bottom-nav-inner">
+        <a href="index.html" class="bnav-item"><span>🎥</span><span>Video</span></a>
+        <a href="course.html" class="bnav-item active"><span>📚</span><span>Course</span></a>
+        <a href="habit.html" class="bnav-item"><span>✅</span><span>Habit</span></a>
+        <a href="web.html" class="bnav-item"><span>🌐</span><span>Web</span></a>
+        <a href="indonesia.html" class="bnav-item"><span>🇮🇩</span><span>Indo</span></a>
+        <a href="jepang.html" class="bnav-item"><span>🇯🇵</span><span>Jepang</span></a>
+        <a href="timer-dashboard.html" class="bnav-item"><span>⏱</span><span>Timer</span></a>
+    </div>
+</nav>
+<script>
+// ── TIME TRACKER (Firebase-synced) ──────────────────────────
+(function() {
+    const PAGE_ID = 'course';
+
+    const todayStr = () => {
+        const d = new Date();
+        return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    };
+    const LS_KEY = () => 'waktu_'+PAGE_ID+'_'+todayStr();
+    const FB_PATH = () => 'timer/'+todayStr()+'/'+PAGE_ID;
+
+    const fmt = (s) => {
+        const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+        if(h>0)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+        return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
+    };
+    const fmtVerbose = (s) => {
+        if(s<60)return s+' detik';
+        const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;
+        let str='';
+        if(h>0)str+=h+' jam ';
+        if(m>0)str+=m+' menit ';
+        if(sec>0&&h===0)str+=sec+' detik';
+        return str.trim();
+    };
+
+    let totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10);
+    let lastTick=null, intervalId=null, isActive=false, fbDb=null;
+    const MAX_GAP = 5; // toleransi detik antar-detak; lebih dari ini dianggap HP terkunci/app di-suspend, tidak dihitung
+
+    const updateUI = () => {
+        const el=document.getElementById('waktuTeks');
+        const widget=document.getElementById('waktuWidget');
+        const detail=document.getElementById('waktuTooltipDetail');
+        if(!el) return;
+        el.textContent=fmt(totalDetik);
+        if(detail){
+            const tglStr=new Date().toLocaleDateString('id-ID',{weekday:'long',day:'numeric',month:'long'});
+            detail.textContent=fmtVerbose(totalDetik)+' — '+tglStr;
+        }
+        if(widget){
+            if(totalDetik>=7200){widget.style.background='#fff7ed';widget.style.borderColor='#fed7aa';widget.style.color='#c2410c';}
+            else if(totalDetik>=3600){widget.style.background='#ecfdf5';widget.style.borderColor='#a7f3d0';widget.style.color='#065f46';}
+            else{widget.style.background='';widget.style.borderColor='';widget.style.color='';}
+        }
+    };
+
+    const saveToFirebase = (detik) => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{ window._fbRTDB.set(window._fbRTDB.ref(fbDb, FB_PATH()), detik).catch(()=>{}); }catch(e){}
+    };
+
+    const loadFromFirebase = () => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{
+            window._fbRTDB.get(window._fbRTDB.ref(fbDb, FB_PATH())).then(snap => {
+                if(snap.exists()){
+                    const remote=parseInt(snap.val(),10)||0;
+                    if(remote>totalDetik){
+                        totalDetik=remote;
+                        localStorage.setItem(LS_KEY(), String(totalDetik));
+                        if(isActive) lastTick=Date.now();
+                        updateUI();
+                    }
+                }
+            }).catch(()=>{});
+        }catch(e){}
+    };
+
+    const cleanupOldData = () => {
+        if(!fbDb||!window._fbRTDB) return;
+        try{
+            window._fbRTDB.get(window._fbRTDB.ref(fbDb,'timer')).then(snap => {
+                if(!snap.exists()) return;
+                const cutoff = new Date();
+                cutoff.setDate(cutoff.getDate()-7);
+                const cutoffStr = cutoff.getFullYear()+'-'+String(cutoff.getMonth()+1).padStart(2,'0')+'-'+String(cutoff.getDate()).padStart(2,'0');
+                const deletes = [];
+                snap.forEach(child => {
+                    if(child.key < cutoffStr){
+                        deletes.push(window._fbRTDB.remove(window._fbRTDB.ref(fbDb,'timer/'+child.key)));
+                    }
+                });
+                if(deletes.length) Promise.all(deletes).catch(()=>{});
+            }).catch(()=>{});
+        }catch(e){}
+    };
+
+    const saveAll = (detik) => {
+        localStorage.setItem(LS_KEY(), String(detik));
+        saveToFirebase(detik);
+    };
+
+    // Setiap detak: tambah durasi berdasarkan selisih dari detak SEBELUMNYA (bukan dari awal sesi).
+    // Kalau selisihnya jauh lebih besar dari 1 detik (misal HP dikunci / tab di-suspend berjam-jam
+    // tanpa sempat memicu event pause), lompatan waktu itu DIBUANG, bukan ikut dijumlahkan.
+    // Ini yang memperbaiki bug timer bisa tiba-tiba loncat jadi berjam-jam.
+    const tick = () => {
+        if(!isActive || lastTick===null) return;
+        const now = Date.now();
+        const delta = Math.floor((now-lastTick)/1000);
+        if(delta<=0) return;
+        if(delta<=MAX_GAP){
+            totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10)+delta;
+            localStorage.setItem(LS_KEY(), String(totalDetik));
+        }
+        // delta>MAX_GAP -> dianggap idle/suspend, tidak dihitung, hanya geser titik acuan
+        lastTick = now;
+        updateUI();
+    };
+
+    const jeda = () => {
+        if(!isActive) return; isActive=false;
+        tick();
+        saveAll(totalDetik); clearInterval(intervalId); intervalId=null; lastTick=null;
+        const w=document.getElementById('waktuWidget'); if(w) w.classList.add('paused');
+        updateUI();
+    };
+    const mulai = () => {
+        if(isActive) return;
+        totalDetik=parseInt(localStorage.getItem(LS_KEY())||'0',10);
+        isActive=true; lastTick=Date.now();
+        const w=document.getElementById('waktuWidget'); if(w) w.classList.remove('paused');
+        clearInterval(intervalId);
+        intervalId=setInterval(tick,1000);
+    };
+
+    const tryWireFirebase = () => {
+        if(window._fbTimerDb){
+            fbDb=window._fbTimerDb;
+            loadFromFirebase();
+            // Cleanup old data once per session (only on first page opened)
+            if(!window._timerCleanupDone){
+                window._timerCleanupDone=true;
+                setTimeout(cleanupOldData, 3000);
+            }
+        } else {
+            setTimeout(tryWireFirebase,300);
+        }
+    };
+
+    // Click widget to open dashboard
+    const widget=document.getElementById('waktuWidget');
+    if(widget){ widget.style.cursor='pointer'; widget.title='Klik untuk lihat riwayat'; widget.addEventListener('click',()=>{ if(window.bukaTimerDashboard) window.bukaTimerDashboard(); }); }
+
+    // Timer jalan terus selama halaman ini masih dibuka (tab pindah, putar video,
+    // atau layar dikunci sebentar TIDAK menghentikan hitungan lagi). Cuma disimpan
+    // ulang saat tab kembali terlihat, dan baru benar-benar berhenti+tersimpan
+    // saat halamannya ditutup/di-refresh (pagehide/beforeunload), atau kalau OS
+    // benar-benar men-suspend halaman (Page Lifecycle 'freeze').
+    document.addEventListener('visibilitychange',()=>{ if(!document.hidden && fbDb) loadFromFirebase(); });
+    window.addEventListener('freeze', jeda);
+    window.addEventListener('resume', ()=>{ mulai(); if(fbDb) loadFromFirebase(); });
+    window.addEventListener('pageshow', (e)=>{ mulai(); if(fbDb) loadFromFirebase(); });
+    window.addEventListener('beforeunload',jeda);
+    window.addEventListener('pagehide',jeda);
+    setInterval(()=>{ const s=parseInt(localStorage.getItem(LS_KEY())||'0',10); if(s===0&&totalDetik>60){totalDetik=0;updateUI();} },60000);
+
+    updateUI(); mulai(); tryWireFirebase();
+})();
+
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+    });
+}
+</script>
+</body>
+</html>
